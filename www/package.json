@@ -1,8 +1,8 @@
 {
-  "name": "open-ethereum-pool",
+  "name": "open-overline-pool",
   "version": "0.0.0",
   "private": true,
-  "description": "Open Ethereum Pool",
+  "description": "Open Overline Pool",
   "license": "MIT",
   "author": "",
   "directories": {
