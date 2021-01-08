@@ -1,6 +1,6 @@
 {
 	"threads": 2,
-	"coin": "eth",
+	"coin": "ol",
 	"name": "main",
 
 	"proxy": {
@@ -66,7 +66,7 @@
 	"upstream": [
 		{
 			"name": "main",
-			"url": "http://127.0.0.1:8545",
+			"url": "http://parity:8545",
 			"timeout": "10s"
 		},
 		{
@@ -78,7 +78,7 @@
 
 	"redis": {
 		"leadEndpoint": "redis-leader:6379",
-    "followEndpoint": "redis-follower:6379",
+	        "followEndpoint": "redis-follower:6379",
 		"poolSize": 10,
 		"database": 0,
 		"password": ""
@@ -93,7 +93,7 @@
 		"immatureDepth": 20,
 		"keepTxFees": false,
 		"interval": "10m",
-		"daemon": "http://127.0.0.1:8545",
+		"daemon": "http://parity:8545",
 		"timeout": "10s"
 	},
 
@@ -101,7 +101,7 @@
 		"enabled": false,
 		"requirePeers": 25,
 		"interval": "120m",
-		"daemon": "http://127.0.0.1:8545",
+		"daemon": "http://parity:8545",
 		"timeout": "10s",
 		"address": "0x0",
 		"gas": "21000",
