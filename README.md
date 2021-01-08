@@ -10,18 +10,19 @@
 * Modern beautiful Ember.js frontend
 * Separate stats for workers: can highlight timed-out workers so miners can perform maintenance of rigs
 * JSON-API for stats
+* kubenetes based deployment for all elements of mining pool for maximum reliability
 
 #### Proxies
 
-* [Ether-Proxy](https://github.com/sammy007/ether-proxy) HTTP proxy with web interface
-* [Stratum Proxy](https://github.com/Atrides/eth-proxy) for Ethereum
+* [Overline-Proxy](https://github.com/sammy007/ether-proxy) HTTP proxy with web interface
+* [Stratum Proxy](https://github.com/Atrides/eth-proxy) for Overline
 
 ### Building on Linux
 
 Dependencies:
 
   * go >= 1.9
-  * parity (will not work with geth)
+  * bcnode (does it even have versions at this point, it's more a stream of consciousness)
   * redis-server >= 2.8.0
   * nodejs >= 4 LTS
   * nginx
@@ -304,16 +305,24 @@ I recommend this deployment strategy:
 
 ### Credits
 
-Made by sammy007. Licensed under GPLv3.
+Originally made by sammy007, modifications for overline by lgray. Licensed under GPLv3.
 
 #### Contributors
 
 [Alex Leverington](https://github.com/subtly)
 
-### Donations
+### Donations are highly appreciated!
 
-ETH/ETC: 0xb85150eb365e7df0941f0cf08235f987ba91506a
+ETH/OL: `0xf34fa87db39d15471bebe997860dcd49fc259318`
+
+BTC: `13xBjyBFeqiW1eipFGiS1YQvw9HMuAx3bp`
+
+NEO: `AJodL5DbcASbYPNyVBvYNiZnUpyRtqNpJU`
+
+WAV: `3P6Vaod2dVdk9542QhVAroXimR1m6ThXLjh`
+
+LSK: `4823425666801418479L`
+
+Original author ETH: `0xb85150eb365e7df0941f0cf08235f987ba91506a`
 
 ![](https://cdn.pbrd.co/images/GP5tI1D.png)
-
-Highly appreciated.
