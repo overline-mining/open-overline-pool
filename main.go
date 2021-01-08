@@ -83,12 +83,18 @@ func main() {
 	startNewrelic()
 
 	backend = storage.NewRedisClient(&cfg.Redis, cfg.Coin)
-	pong, err := backend.Check()
+	pong, err := backend.CheckLead()
 	if err != nil {
-		log.Printf("Can't establish connection to backend: %v", err)
+		log.Printf("Can't establish connection to backend leader: %v", err)
 	} else {
-		log.Printf("Backend check reply: %v", pong)
+		log.Printf("Backend leader check reply: %v", pong)
 	}
+  pong, err = backend.CheckFollow()
+  if err != nil {
+    log.Printf("Can't establish connection to backend follower: %v", err)
+  } else {
+    log.Printf("Backend follower check reply: %v", pong)
+  }
 
 	if cfg.Proxy.Enabled {
 		go startProxy()

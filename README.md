@@ -232,7 +232,8 @@ otherwise you will get errors on start because of JSON comments.**
   // This is standard redis connection options
   "redis": {
     // Where your redis instance is listening for commands
-    "endpoint": "127.0.0.1:6379",
+    "leadEndpoint": "redis-leader:6379",
+    "followEndpoint": "redis-follower:6379",
     "poolSize": 10,
     "database": 0,
     "password": ""

@@ -13,14 +13,16 @@ import (
 )
 
 type Config struct {
-	Endpoint string `json:"endpoint"`
+	LeadEndpoint string `json:"leadEndpoint"`
+  FollowEndpoint string `json:"followEndpoint"`
 	Password string `json:"password"`
 	Database int64  `json:"database"`
 	PoolSize int    `json:"poolSize"`
 }
 
 type RedisClient struct {
-	client *redis.Client
+  _leadClient *redis.Client
+	_followClient *redis.Client
 	prefix string
 }
 
@@ -44,7 +46,7 @@ type BlockData struct {
 	candidateKey   string
 	immatureKey    string
 }
-
+ 
 func (b *BlockData) RewardInShannon() int64 {
 	reward := new(big.Int).Div(b.Reward, util.Shannon)
 	return reward.Int64()
@@ -79,30 +81,44 @@ type Worker struct {
 }
 
 func NewRedisClient(cfg *Config, prefix string) *RedisClient {
-	client := redis.NewClient(&redis.Options{
-		Addr:     cfg.Endpoint,
+	leadClient := redis.NewClient(&redis.Options{
+		Addr:     cfg.LeadEndpoint,
 		Password: cfg.Password,
 		DB:       cfg.Database,
 		PoolSize: cfg.PoolSize,
 	})
-	return &RedisClient{client: client, prefix: prefix}
+  followClient := redis.NewClient(&redis.Options{
+    Addr:     cfg.FollowEndpoint,
+    Password: cfg.Password,
+    DB:       cfg.Database,
+    PoolSize: cfg.PoolSize,
+  })
+	return &RedisClient{_leadClient: leadClient, _followClient: followClient, prefix: prefix}
 }
 
-func (r *RedisClient) Client() *redis.Client {
-	return r.client
+func (r *RedisClient) ReadClient() *redis.Client {
+  return r._followClient
 }
 
-func (r *RedisClient) Check() (string, error) {
-	return r.client.Ping().Result()
+func (r *RedisClient) WriteClient() *redis.Client {
+  return r._leadClient
+}
+
+func (r *RedisClient) CheckLead() (string, error) {
+	return r._leadClient.Ping().Result()
+}
+
+func (r *RedisClient) CheckFollow() (string, error) {
+  return r._followClient.Ping().Result()
 }
 
 func (r *RedisClient) BgSave() (string, error) {
-	return r.client.BgSave().Result()
+	return r._followClient.BgSave().Result()
 }
 
 // Always returns list of addresses. If Redis fails it will return empty list.
 func (r *RedisClient) GetBlacklist() ([]string, error) {
-	cmd := r.client.SMembers(r.formatKey("blacklist"))
+	cmd := r._followClient.SMembers(r.formatKey("blacklist"))
 	if cmd.Err() != nil {
 		return []string{}, cmd.Err()
 	}
@@ -111,7 +127,7 @@ func (r *RedisClient) GetBlacklist() ([]string, error) {
 
 // Always returns list of IPs. If Redis fails it will return empty list.
 func (r *RedisClient) GetWhitelist() ([]string, error) {
-	cmd := r.client.SMembers(r.formatKey("whitelist"))
+	cmd := r._followClient.SMembers(r.formatKey("whitelist"))
 	if cmd.Err() != nil {
 		return []string{}, cmd.Err()
 	}
@@ -119,7 +135,7 @@ func (r *RedisClient) GetWhitelist() ([]string, error) {
 }
 
 func (r *RedisClient) WriteNodeState(id string, height uint64, diff *big.Int) error {
-	tx := r.client.Multi()
+	tx := r._leadClient.Multi()
 	defer tx.Close()
 
 	now := util.MakeTimestamp() / 1000
@@ -135,7 +151,7 @@ func (r *RedisClient) WriteNodeState(id string, height uint64, diff *big.Int) er
 }
 
 func (r *RedisClient) GetNodeStates() ([]map[string]interface{}, error) {
-	cmd := r.client.HGetAllMap(r.formatKey("nodes"))
+	cmd := r._followClient.HGetAllMap(r.formatKey("nodes"))
 	if cmd.Err() != nil {
 		return nil, cmd.Err()
 	}
@@ -161,8 +177,8 @@ func (r *RedisClient) GetNodeStates() ([]map[string]interface{}, error) {
 
 func (r *RedisClient) checkPoWExist(height uint64, params []string) (bool, error) {
 	// Sweep PoW backlog for previous blocks, we have 3 templates back in RAM
-	r.client.ZRemRangeByScore(r.formatKey("pow"), "-inf", fmt.Sprint("(", height-8))
-	val, err := r.client.ZAdd(r.formatKey("pow"), redis.Z{Score: float64(height), Member: strings.Join(params, ":")}).Result()
+	r._leadClient.ZRemRangeByScore(r.formatKey("pow"), "-inf", fmt.Sprint("(", height-8))
+	val, err := r._leadClient.ZAdd(r.formatKey("pow"), redis.Z{Score: float64(height), Member: strings.Join(params, ":")}).Result()
 	return val == 0, err
 }
 
@@ -175,7 +191,7 @@ func (r *RedisClient) WriteShare(login, id string, params []string, diff int64, 
 	if exist {
 		return true, nil
 	}
-	tx := r.client.Multi()
+	tx := r._leadClient.Multi()
 	defer tx.Close()
 
 	ms := util.MakeTimestamp()
@@ -198,7 +214,7 @@ func (r *RedisClient) WriteBlock(login, id string, params []string, diff, roundD
 	if exist {
 		return true, nil
 	}
-	tx := r.client.Multi()
+	tx := r._leadClient.Multi()
 	defer tx.Close()
 
 	ms := util.MakeTimestamp()
@@ -225,7 +241,7 @@ func (r *RedisClient) WriteBlock(login, id string, params []string, diff, roundD
 		}
 		hashHex := strings.Join(params, ":")
 		s := join(hashHex, ts, roundDiff, totalShares)
-		cmd := r.client.ZAdd(r.formatKey("blocks", "candidates"), redis.Z{Score: float64(height), Member: s})
+		cmd := r._leadClient.ZAdd(r.formatKey("blocks", "candidates"), redis.Z{Score: float64(height), Member: s})
 		return false, cmd.Err()
 	}
 }
@@ -280,7 +296,7 @@ func join(args ...interface{}) string {
 
 func (r *RedisClient) GetCandidates(maxHeight int64) ([]*BlockData, error) {
 	option := redis.ZRangeByScore{Min: "0", Max: strconv.FormatInt(maxHeight, 10)}
-	cmd := r.client.ZRangeByScoreWithScores(r.formatKey("blocks", "candidates"), option)
+	cmd := r._followClient.ZRangeByScoreWithScores(r.formatKey("blocks", "candidates"), option)
 	if cmd.Err() != nil {
 		return nil, cmd.Err()
 	}
@@ -289,7 +305,7 @@ func (r *RedisClient) GetCandidates(maxHeight int64) ([]*BlockData, error) {
 
 func (r *RedisClient) GetImmatureBlocks(maxHeight int64) ([]*BlockData, error) {
 	option := redis.ZRangeByScore{Min: "0", Max: strconv.FormatInt(maxHeight, 10)}
-	cmd := r.client.ZRangeByScoreWithScores(r.formatKey("blocks", "immature"), option)
+	cmd := r._followClient.ZRangeByScoreWithScores(r.formatKey("blocks", "immature"), option)
 	if cmd.Err() != nil {
 		return nil, cmd.Err()
 	}
@@ -298,7 +314,7 @@ func (r *RedisClient) GetImmatureBlocks(maxHeight int64) ([]*BlockData, error) {
 
 func (r *RedisClient) GetRoundShares(height int64, nonce string) (map[string]int64, error) {
 	result := make(map[string]int64)
-	cmd := r.client.HGetAllMap(r.formatRound(height, nonce))
+	cmd := r._followClient.HGetAllMap(r.formatRound(height, nonce))
 	if cmd.Err() != nil {
 		return nil, cmd.Err()
 	}
@@ -318,7 +334,7 @@ func (r *RedisClient) GetPayees() ([]string, error) {
 	for {
 		var keys []string
 		var err error
-		c, keys, err = r.client.Scan(c, r.formatKey("miners", "*"), 100).Result()
+		c, keys, err = r._followClient.Scan(c, r.formatKey("miners", "*"), 100).Result()
 		if err != nil {
 			return nil, err
 		}
@@ -337,7 +353,7 @@ func (r *RedisClient) GetPayees() ([]string, error) {
 }
 
 func (r *RedisClient) GetBalance(login string) (int64, error) {
-	cmd := r.client.HGet(r.formatKey("miners", login), "balance")
+	cmd := r._followClient.HGet(r.formatKey("miners", login), "balance")
 	if cmd.Err() == redis.Nil {
 		return 0, nil
 	} else if cmd.Err() != nil {
@@ -348,7 +364,7 @@ func (r *RedisClient) GetBalance(login string) (int64, error) {
 
 func (r *RedisClient) LockPayouts(login string, amount int64) error {
 	key := r.formatKey("payments", "lock")
-	result := r.client.SetNX(key, join(login, amount), 0).Val()
+	result := r._leadClient.SetNX(key, join(login, amount), 0).Val()
 	if !result {
 		return fmt.Errorf("Unable to acquire lock '%s'", key)
 	}
@@ -357,12 +373,12 @@ func (r *RedisClient) LockPayouts(login string, amount int64) error {
 
 func (r *RedisClient) UnlockPayouts() error {
 	key := r.formatKey("payments", "lock")
-	_, err := r.client.Del(key).Result()
+	_, err := r._leadClient.Del(key).Result()
 	return err
 }
 
 func (r *RedisClient) IsPayoutsLocked() (bool, error) {
-	_, err := r.client.Get(r.formatKey("payments", "lock")).Result()
+	_, err := r._followClient.Get(r.formatKey("payments", "lock")).Result()
 	if err == redis.Nil {
 		return false, nil
 	} else if err != nil {
@@ -379,7 +395,7 @@ type PendingPayment struct {
 }
 
 func (r *RedisClient) GetPendingPayments() []*PendingPayment {
-	raw := r.client.ZRevRangeWithScores(r.formatKey("payments", "pending"), 0, -1)
+	raw := r._followClient.ZRevRangeWithScores(r.formatKey("payments", "pending"), 0, -1)
 	var result []*PendingPayment
 	for _, v := range raw.Val() {
 		// timestamp -> "address:amount"
@@ -395,7 +411,7 @@ func (r *RedisClient) GetPendingPayments() []*PendingPayment {
 
 // Deduct miner's balance for payment
 func (r *RedisClient) UpdateBalance(login string, amount int64) error {
-	tx := r.client.Multi()
+	tx := r._leadClient.Multi()
 	defer tx.Close()
 
 	ts := util.MakeTimestamp() / 1000
@@ -412,7 +428,7 @@ func (r *RedisClient) UpdateBalance(login string, amount int64) error {
 }
 
 func (r *RedisClient) RollbackBalance(login string, amount int64) error {
-	tx := r.client.Multi()
+	tx := r._leadClient.Multi()
 	defer tx.Close()
 
 	_, err := tx.Exec(func() error {
@@ -427,7 +443,7 @@ func (r *RedisClient) RollbackBalance(login string, amount int64) error {
 }
 
 func (r *RedisClient) WritePayment(login, txHash string, amount int64) error {
-	tx := r.client.Multi()
+	tx := r._leadClient.Multi()
 	defer tx.Close()
 
 	ts := util.MakeTimestamp() / 1000
@@ -447,7 +463,7 @@ func (r *RedisClient) WritePayment(login, txHash string, amount int64) error {
 }
 
 func (r *RedisClient) WriteImmatureBlock(block *BlockData, roundRewards map[string]int64) error {
-	tx := r.client.Multi()
+	tx := r._leadClient.Multi()
 	defer tx.Close()
 
 	_, err := tx.Exec(func() error {
@@ -466,7 +482,7 @@ func (r *RedisClient) WriteImmatureBlock(block *BlockData, roundRewards map[stri
 
 func (r *RedisClient) WriteMaturedBlock(block *BlockData, roundRewards map[string]int64) error {
 	creditKey := r.formatKey("credits", "immature", block.RoundHeight, block.Hash)
-	tx, err := r.client.Watch(creditKey)
+	tx, err := r._leadClient.Watch(creditKey)
 	// Must decrement immatures using existing log entry
 	immatureCredits := tx.HGetAllMap(creditKey)
 	if err != nil {
@@ -510,7 +526,7 @@ func (r *RedisClient) WriteMaturedBlock(block *BlockData, roundRewards map[strin
 
 func (r *RedisClient) WriteOrphan(block *BlockData) error {
 	creditKey := r.formatKey("credits", "immature", block.RoundHeight, block.Hash)
-	tx, err := r.client.Watch(creditKey)
+	tx, err := r._leadClient.Watch(creditKey)
 	// Must decrement immatures using existing log entry
 	immatureCredits := tx.HGetAllMap(creditKey)
 	if err != nil {
@@ -536,7 +552,7 @@ func (r *RedisClient) WriteOrphan(block *BlockData) error {
 }
 
 func (r *RedisClient) WritePendingOrphans(blocks []*BlockData) error {
-	tx := r.client.Multi()
+	tx := r._leadClient.Multi()
 	defer tx.Close()
 
 	_, err := tx.Exec(func() error {
@@ -564,13 +580,13 @@ func (r *RedisClient) writeMaturedBlock(tx *redis.Multi, block *BlockData) {
 }
 
 func (r *RedisClient) IsMinerExists(login string) (bool, error) {
-	return r.client.Exists(r.formatKey("miners", login)).Result()
+	return r._followClient.Exists(r.formatKey("miners", login)).Result()
 }
 
 func (r *RedisClient) GetMinerStats(login string, maxPayments int64) (map[string]interface{}, error) {
 	stats := make(map[string]interface{})
 
-	tx := r.client.Multi()
+	tx := r._followClient.Multi()
 	defer tx.Close()
 
 	cmds, err := tx.Exec(func() error {
@@ -613,7 +629,7 @@ func convertStringMap(m map[string]string) map[string]interface{} {
 func (r *RedisClient) FlushStaleStats(window, largeWindow time.Duration) (int64, error) {
 	now := util.MakeTimestamp() / 1000
 	max := fmt.Sprint("(", now-int64(window/time.Second))
-	total, err := r.client.ZRemRangeByScore(r.formatKey("hashrate"), "-inf", max).Result()
+	total, err := r._leadClient.ZRemRangeByScore(r.formatKey("hashrate"), "-inf", max).Result()
 	if err != nil {
 		return total, err
 	}
@@ -625,14 +641,14 @@ func (r *RedisClient) FlushStaleStats(window, largeWindow time.Duration) (int64,
 	for {
 		var keys []string
 		var err error
-		c, keys, err = r.client.Scan(c, r.formatKey("hashrate", "*"), 100).Result()
+		c, keys, err = r._followClient.Scan(c, r.formatKey("hashrate", "*"), 100).Result()
 		if err != nil {
 			return total, err
 		}
 		for _, row := range keys {
 			login := strings.Split(row, ":")[2]
 			if _, ok := miners[login]; !ok {
-				n, err := r.client.ZRemRangeByScore(r.formatKey("hashrate", login), "-inf", max).Result()
+				n, err := r._leadClient.ZRemRangeByScore(r.formatKey("hashrate", login), "-inf", max).Result()
 				if err != nil {
 					return total, err
 				}
@@ -651,7 +667,7 @@ func (r *RedisClient) CollectStats(smallWindow time.Duration, maxBlocks, maxPaym
 	window := int64(smallWindow / time.Second)
 	stats := make(map[string]interface{})
 
-	tx := r.client.Multi()
+	tx := r._leadClient.Multi()
 	defer tx.Close()
 
 	now := util.MakeTimestamp() / 1000
@@ -705,7 +721,7 @@ func (r *RedisClient) CollectWorkersStats(sWindow, lWindow time.Duration, login 
 	largeWindow := int64(lWindow / time.Second)
 	stats := make(map[string]interface{})
 
-	tx := r.client.Multi()
+	tx := r._leadClient.Multi()
 	defer tx.Close()
 
 	now := util.MakeTimestamp() / 1000
@@ -767,7 +783,7 @@ func (r *RedisClient) CollectWorkersStats(sWindow, lWindow time.Duration, login 
 func (r *RedisClient) CollectLuckStats(windows []int) (map[string]interface{}, error) {
 	stats := make(map[string]interface{})
 
-	tx := r.client.Multi()
+	tx := r._followClient.Multi()
 	defer tx.Close()
 
 	max := int64(windows[len(windows)-1])
