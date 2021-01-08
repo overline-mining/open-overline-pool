@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bcnode-deployment
+  labels:
+    app: bcnode
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bcnode
+  template:
+    # template for bcnode pods
+    metadata:
+      labels:
+        app: bcnode
+    spec:
+      volumes:
+      - name: bcnode-db
+        emptyDir: {}
+      containers:
+      - name: bcnode
+        image: lgray/bcnode:latest
+        volumeMounts:
+        - mountPath: /bc/_data
+          name: bcnode-db
+        env:
+        - name: BC_MINER_KEY
+          value: "0xf34fa87db39d15471bebe997860dcd49fc259318"
+        - name: BC_SCOOKIE
+          value: "correct-horse-battery-staple"
+        - name: BC_NETWORK
+          value: "main"
+        - name: MIN_HEALTH_NET
+          value: "true"
+        - name: BC_RPC_MINER
+          value: "true"
+        - name: BC_MINER_WORKERS
+          value: "1"
+        - name: NODE_OPTIONS
+          value: "--max_old_space_size=6096"
+        - name: BC_TUNNEL_HTTPS
+          value: "false"
+        ports:
+        - name: rpc
+          protocol: TCP
+          containerPort: 3000
+        - name: bccomms
+          protocol: TCP
+          containerPort: 16060
+        - name: bcbootstrap
+          protocol: TCP
+          containerPort: 16061
+        args: ['start', '--rovers', '--rpc', '--ws', '--ui', '--node', '--scookie', '${BC_SCOOKIE}', '--relay-mode']
+        imagePullPolicy: IfNotPresent
+      restartPolicy: Always
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - bcnode
+            topologyKey: "kubernetes.io/hostname"
+      initContainers:
+      - name: get-bcnode-db-container
+        image: ubuntu:20.04
+        volumeMounts:
+        - mountPath: /data
+          name: bcnode-db
+        command: ['sh','-c']
+        args:
+        - echo "nameserver 8.8.8.8" >> /etc/resolv.conf;
+          echo "nameserver 8.8.4.4" >> /etc/resolv.conf;
+          apt-get update && apt-get install -y wget unzip;
+          wget https://community.multichains.org/_easysync_db.zip;
+          unzip _easysync_db.zip -d /tmp;
+          rm -f /tmp/_data/db/IDENTITY;
+          rm -f /tmp/_data/.chainstate.db;
+          mv /tmp/_data/* /data;
+          echo done;
+    # The pod template ends here
