@@ -26,8 +26,9 @@ Dependencies:
   * redis-server >= 2.8.0
   * nodejs >= 4 LTS
   * nginx
+  * kubernetes >= 1.20 (use minikube for local / non-production builds)
 
-**I highly recommend to use Ubuntu 16.04 LTS.**
+**I highly recommend to use Ubuntu 20.04 LTS.**
 
 First install  [go-ethereum](https://github.com/ethereum/go-ethereum/wiki/Installation-Instructions-for-Ubuntu).
 
@@ -305,7 +306,7 @@ I recommend this deployment strategy:
 
 ### Credits
 
-Originally made by sammy007, modifications for overline by lgray. Licensed under GPLv3.
+Originally made by sammy007, modifications for overline and kubernetes by lgray. Licensed under GPLv3.
 
 #### Contributors
 
