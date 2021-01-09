@@ -15,15 +15,15 @@ module.exports = function(environment) {
 
     APP: {
       // API host and port
-      ApiUrl: '//example.net/',
+      ApiUrl: 'http://open-overline-pool-api:6283',
 
       // HTTP mining endpoint
-      HttpHost: 'http://example.net',
-      HttpPort: 8888,
+      HttpHost: 'http://open-overline-pool-api',
+      HttpPort: 3142,
 
       // Stratum mining endpoint
-      StratumHost: 'example.net',
-      StratumPort: 8008,
+      StratumHost: 'open-overline-pool-api',
+      StratumPort: 3141,
 
       // Fee and payout details
       PoolFee: '1%',
@@ -38,12 +38,12 @@ module.exports = function(environment) {
     /* Override ApiUrl just for development, while you are customizing
       frontend markup and css theme on your workstation.
     */
-    ENV.APP.ApiUrl = 'http://localhost:8081/'
-    // ENV.APP.LOG_RESOLVER = true;
-    // ENV.APP.LOG_ACTIVE_GENERATION = true;
-    // ENV.APP.LOG_TRANSITIONS = true;
-    // ENV.APP.LOG_TRANSITIONS_INTERNAL = true;
-    // ENV.APP.LOG_VIEW_LOOKUPS = true;
+    //ENV.APP.ApiUrl = 'http://localhost:8081/'
+     ENV.APP.LOG_RESOLVER = true;
+     ENV.APP.LOG_ACTIVE_GENERATION = true;
+     ENV.APP.LOG_TRANSITIONS = true;
+     ENV.APP.LOG_TRANSITIONS_INTERNAL = true;
+     ENV.APP.LOG_VIEW_LOOKUPS = true;
   }
 
   if (environment === 'test') {
