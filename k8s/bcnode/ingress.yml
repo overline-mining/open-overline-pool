@@ -13,7 +13,7 @@ spec:
               pathType: Prefix
               backend:
                 service:
-                  name: bcnode-svc
+                  name: bcnode-service
                   port:
                     number: 16060
                   port:
