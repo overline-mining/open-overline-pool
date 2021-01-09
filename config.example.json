@@ -1,11 +1,11 @@
 {
 	"threads": 2,
-	"coin": "eth",
+	"coin": "ol",
 	"name": "main",
 
 	"proxy": {
 		"enabled": true,
-		"listen": "0.0.0.0:8888",
+		"listen": "0.0.0.0:3142",
 		"limitHeadersSize": 1024,
 		"limitBodySize": 256,
 		"behindReverseProxy": false,
@@ -19,7 +19,7 @@
 
 		"stratum": {
 			"enabled": true,
-			"listen": "0.0.0.0:8008",
+			"listen": "0.0.0.0:3141",
 			"timeout": "120s",
 			"maxConn": 8192,
 			"tls": false,
@@ -53,7 +53,7 @@
 		"enabled": true,
 		"purgeOnly": false,
 		"purgeInterval": "10m",
-		"listen": "0.0.0.0:8080",
+		"listen": "0.0.0.0:6283",
 		"statsCollectInterval": "5s",
 		"hashrateWindow": "30m",
 		"hashrateLargeWindow": "3h",
@@ -66,7 +66,7 @@
 	"upstream": [
 		{
 			"name": "main",
-			"url": "http://127.0.0.1:8545",
+			"url": "http://ethereum:8545",
 			"timeout": "10s"
 		},
 		{
@@ -78,7 +78,7 @@
 
 	"redis": {
 		"leadEndpoint": "redis-leader:6379",
-    "followEndpoint": "redis-follower:6379",
+	        "followEndpoint": "redis-follower:6379",
 		"poolSize": 10,
 		"database": 0,
 		"password": ""
@@ -93,7 +93,7 @@
 		"immatureDepth": 20,
 		"keepTxFees": false,
 		"interval": "10m",
-		"daemon": "http://127.0.0.1:8545",
+		"daemon": "http://parity:8545",
 		"timeout": "10s"
 	},
 
@@ -101,7 +101,7 @@
 		"enabled": false,
 		"requirePeers": 25,
 		"interval": "120m",
-		"daemon": "http://127.0.0.1:8545",
+		"daemon": "http://parity:8545",
 		"timeout": "10s",
 		"address": "0x0",
 		"gas": "21000",

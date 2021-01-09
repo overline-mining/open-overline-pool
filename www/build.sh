@@ -1,3 +1,3 @@
 #!/bin/bash
 
-./node_modules/.bin/ember build --environment production
+./node_modules/.bin/ember build --environment development
