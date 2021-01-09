@@ -15,14 +15,14 @@ module.exports = function(environment) {
 
     APP: {
       // API host and port
-      ApiUrl: 'http://open-overline-pool-api:6283',
+      ApiUrl: 'http://localhost:6283/',
 
       // HTTP mining endpoint
-      HttpHost: 'http://open-overline-pool-api',
+      HttpHost: 'http://localhost',
       HttpPort: 3142,
 
       // Stratum mining endpoint
-      StratumHost: 'open-overline-pool-api',
+      StratumHost: 'localhost',
       StratumPort: 3141,
 
       // Fee and payout details
