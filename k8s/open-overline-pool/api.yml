@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: open-overline-pool-api
+  labels:
+    app: open-overline-pool
+spec:
+  volumes:
+  - name: ssh-secret
+    secret:
+      secretName: secret-ssh-auth
+  containers:
+    - name: oovp-test-container
+      image: lgray/open-overline-pool-api
+      ports:
+      - containerPort: 6283 # polling api
+      - containerPort: 3141 # stratum mining
+      - containerPort: 3142 # http mining

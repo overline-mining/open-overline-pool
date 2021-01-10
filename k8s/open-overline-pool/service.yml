@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: open-overline-pool
+spec:
+  ports:
+  - name: web
+    port: 80
+    targetPort: 8080
+  - name: livereload
+    port: 7020
+  - name: api
+    port: 6283
+  - name: stratum-mining
+    port: 3141
+  - name: http-mining
+    port: 3142
+  selector:
+    app: open-overline-pool
+  externalIPs:
+    - 192.168.49.2

@@ -6,10 +6,6 @@ spec:
   selector:
     app: bcnode
   ports:
-    - name: bccomms
-      protocol: TCP
-      port: 16060
-      targetPort: 16060
     - name: bcbootstrap
       protocol: TCP
       port: 16061

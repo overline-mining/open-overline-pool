@@ -6,7 +6,7 @@ metadata:
       nginx.ingress.kubernetes.io/rewrite-target: /$1
 spec:
     rules:
-      - host: bcnode.ingress
+      - host: open-overline-pool.us
         http:
           paths:
             - path: /
@@ -14,7 +14,5 @@ spec:
               backend:
                 service:
                   name: bcnode-service
-                  port:
-                    number: 16060
                   port:
                     number: 16061
