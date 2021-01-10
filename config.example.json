@@ -93,7 +93,7 @@
 		"immatureDepth": 20,
 		"keepTxFees": false,
 		"interval": "10m",
-		"daemon": "http://parity:8545",
+		"daemon": "http://ethereum:8545",
 		"timeout": "10s"
 	},
 
@@ -101,7 +101,7 @@
 		"enabled": false,
 		"requirePeers": 25,
 		"interval": "120m",
-		"daemon": "http://parity:8545",
+		"daemon": "http://ethereum:8545",
 		"timeout": "10s",
 		"address": "0x0",
 		"gas": "21000",
