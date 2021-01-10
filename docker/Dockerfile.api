@@ -1,0 +1,46 @@
+FROM ubuntu:20.04 AS builder
+
+ARG POOL_TARBALL_NAME=open-overline-pool.tar.gz
+  
+# Get basic packages
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      apt-utils \
+      build-essential \
+      curl \
+      wget \
+      git \
+      ca-certificates \
+      golang \
+      pkg-config \
+      unzip \
+      && rm -rf /var/lib/apt/lists/*
+
+# Fetch and compile open overline pool
+RUN mkdir -p /var/local/git
+COPY ./${POOL_TARBALL_NAME} /var/local/git/
+RUN cd /var/local/git && \
+    tar -xzf ${POOL_TARBALL_NAME} && \
+    cd open-overline-pool && make
+RUN mkdir -p /artifacts && \
+    cp /var/local/git/open-overline-pool/config.example.json /artifacts/config.json && \
+    cp /var/local/git/open-overline-pool/build/bin/open-overline-pool /artifacts
+
+# ------------------------------------------------------------------------------
+FROM ubuntu:20.04
+
+# Install required packages
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates && \
+    apt-get clean && rm -rf /var/lib/apt/lists
+
+RUN mkdir -p /opt/pool
+
+# Copy grpc libraries from builder image to /usr/local/lib
+COPY --from=builder /artifacts /opt/pool
+
+RUN ls /opt/pool
+
+WORKDIR /opt/pool
+
+EXPOSE 3141 3142 6283
+
+ENTRYPOINT [ "./open-overline-pool" ]
