@@ -206,7 +206,7 @@ func matchCandidate(block *rpc.GetBlockReply, candidate *storage.BlockData) bool
 }
 
 func (u *BlockUnlocker) handleBlock(block *rpc.GetBlockReply, candidate *storage.BlockData) error {
-	correctHeight, err := strconv.ParseInt(strings.Replace(block.Number, "0x", "", -1), 16, 64)
+	correctHeight, err := strconv.ParseInt(strings.Replace(string(block.Number), "0x", "", -1), 16, 64)
 	if err != nil {
 		return err
 	}
@@ -236,7 +236,7 @@ func (u *BlockUnlocker) handleBlock(block *rpc.GetBlockReply, candidate *storage
 }
 
 func handleUncle(height int64, uncle *rpc.GetBlockReply, candidate *storage.BlockData) error {
-	uncleHeight, err := strconv.ParseInt(strings.Replace(uncle.Number, "0x", "", -1), 16, 64)
+	uncleHeight, err := strconv.ParseInt(strings.Replace(string(uncle.Number), "0x", "", -1), 16, 64)
 	if err != nil {
 		return err
 	}
@@ -262,7 +262,7 @@ func (u *BlockUnlocker) unlockPendingBlocks() {
 		log.Printf("Unable to get current blockchain height from node: %v", err)
 		return
 	}
-	currentHeight, err := strconv.ParseInt(strings.Replace(current.Number, "0x", "", -1), 16, 64)
+	currentHeight, err := strconv.ParseInt(strings.Replace(string(current.Number), "0x", "", -1), 16, 64)
 	if err != nil {
 		u.halt = true
 		u.lastFail = err
@@ -360,7 +360,7 @@ func (u *BlockUnlocker) unlockAndCreditMiners() {
 		log.Printf("Unable to get current blockchain height from node: %v", err)
 		return
 	}
-	currentHeight, err := strconv.ParseInt(strings.Replace(current.Number, "0x", "", -1), 16, 64)
+	currentHeight, err := strconv.ParseInt(strings.Replace(string(current.Number), "0x", "", -1), 16, 64)
 	if err != nil {
 		u.halt = true
 		u.lastFail = err

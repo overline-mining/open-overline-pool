@@ -3,8 +3,9 @@ package proxy
 import (
 	"log"
 	"math/big"
+	"encoding/json"
 	"strconv"
-	"strings"
+	//"strings"
 	"sync"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -58,12 +59,14 @@ func (s *ProxyServer) fetchBlockTemplate() {
 	if t != nil && t.Header == reply[0] {
 		return
 	}
-	diff := util.TargetHexToDiff(reply[2])
-	height, err := strconv.ParseUint(strings.Replace(reply[3], "0x", "", -1), 16, 64)
+	diff := new(big.Int)
+	diff.SetString(reply[2], 10)
+	//log.Println(reply)
+	height, err := strconv.ParseUint(string(reply[3]), 10, 64)
 
 	pendingReply := &rpc.GetBlockReplyPart{
 		Difficulty: util.ToHex(s.config.Proxy.Difficulty),
-		Number:     reply[3],
+		Number:     json.Number(reply[3]),
 	}
 
 	newTemplate := BlockTemplate{

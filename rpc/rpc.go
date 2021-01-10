@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-
+	//"log"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 
 	"github.com/lgray/open-overline-pool/util"
@@ -29,10 +29,10 @@ type RPCClient struct {
 }
 
 type GetBlockReply struct {
-	Number       string   `json:"height"`
+	Number       json.Number   `json:"height,Number"`
 	Hash         string   `json:"hash"`
 	Nonce        string   `json:"nonce"`
-  Distance     string   `json:"distance"`
+        Distance     string   `json:"distance"`
 	Miner        string   `json:"miner"`
 	Difficulty   string   `json:"difficulty"`
 	GasLimit     string   
@@ -44,8 +44,10 @@ type GetBlockReply struct {
 }
 
 type GetBlockReplyPart struct {
-	Number     string `json:"number"`
+	Number     json.Number `json:"height"`
 	Difficulty string `json:"difficulty"`
+	Hash       string `json:"hash"`
+	Distance   string `json:"distance"`
 }
 
 const receiptStatusSuccessful = "0x1"
@@ -92,13 +94,15 @@ func NewRPCClient(name, url, scookie, timeout string) *RPCClient {
 }
 
 func (r *RPCClient) GetWork() ([]string, error) {
-	rpcResp, err := r.doPost(r.Url, "ol_getWork", []string{})
+	rpcResp, err := r.doPost(r.Url, "getLatestBlock", []string{}) // fixme!
 	if err != nil {
 		return nil, err
 	}
-	var reply []string
+	var reply *GetBlockReplyPart
 	err = json.Unmarshal(*rpcResp.Result, &reply)
-	return reply, err
+	var out []string
+	out = []string{reply.Hash, reply.Hash, reply.Difficulty, string(reply.Number)}
+	return out, err
 }
 
 func (r *RPCClient) GetLatestBlock() (*GetBlockReplyPart, error) {
@@ -249,7 +253,7 @@ func (r *RPCClient) doPost(url string, method string, params interface{}) (*JSON
 	data, _ := json.Marshal(jsonReq)
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(data))
-  req.SetBasicAuth("", r.SCookie)
+	req.SetBasicAuth("", r.SCookie)
 	req.Header.Set("Content-Length", (string)(len(data)))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")

@@ -31,17 +31,17 @@ type BlockData struct {
 	Timestamp      int64    `json:"timestamp"`
 	Difficulty     int64    `json:"difficulty"`
 	TotalShares    int64    `json:"shares"`
-	Uncle          bool     `json:"uncle"`
-	UncleHeight    int64    `json:"uncleHeight"`
-	Orphan         bool     `json:"orphan"`
+	Uncle          bool     `json:"-"`
+	UncleHeight    int64    `json:"-"`
+	Orphan         bool     `json:"-"`
 	Hash           string   `json:"hash"`
-	Nonce          string   `json:"-"`
+	Nonce          string   `json:"nonce"`
 	PowHash        string   `json:"-"`
 	MixDigest      string   `json:"-"`
 	Reward         *big.Int `json:"-"`
 	ExtraReward    *big.Int `json:"-"`
 	ImmatureReward string   `json:"-"`
-	RewardString   string   `json:"reward"`
+	RewardString   string   `json:"-"`
 	RoundHeight    int64    `json:"-"`
 	candidateKey   string
 	immatureKey    string

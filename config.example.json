@@ -11,7 +11,7 @@
 		"behindReverseProxy": false,
 		"blockRefreshInterval": "120ms",
 		"stateUpdateInterval": "3s",
-		"difficulty": 2000000000,
+                "difficulty": 300000000000000,
 		"hashrateExpiration": "3h",
 
 		"healthCheck": true,
@@ -66,21 +66,21 @@
 	"upstream": [
 		{
 			"name": "main",
-			"url": "http://bcnode:3000",
-      "scookie": "correct-horse-battery-staple",
+			"url": "http://overline:3000/rpc",
+                        "scookie": "correct-horse-battery-staple",
 			"timeout": "10s"
 		},
 		{
 			"name": "backup",
-			"url": "http://bcnode-backup:3000",
-      "scookie": "correct-horse-battery-staple",
+			"url": "http://overline2:3000/rpc",
+                        "scookie": "correct-horse-battery-staple",
 			"timeout": "10s"
 		}
 	],
 
 	"redis": {
 		"leadEndpoint": "redis-leader:6379",
-    "followEndpoint": "redis-follower:6379",
+                "followEndpoint": "redis-follower:6379",
 		"poolSize": 10,
 		"database": 0,
 		"password": ""
