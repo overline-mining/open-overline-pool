@@ -66,19 +66,21 @@
 	"upstream": [
 		{
 			"name": "main",
-			"url": "http://ethereum:8545",
+			"url": "http://bcnode:3000",
+      "scookie": "correct-horse-battery-staple",
 			"timeout": "10s"
 		},
 		{
 			"name": "backup",
-			"url": "http://127.0.0.2:8545",
+			"url": "http://bcnode-backup:3000",
+      "scookie": "correct-horse-battery-staple",
 			"timeout": "10s"
 		}
 	],
 
 	"redis": {
 		"leadEndpoint": "redis-leader:6379",
-	        "followEndpoint": "redis-follower:6379",
+    "followEndpoint": "redis-follower:6379",
 		"poolSize": 10,
 		"database": 0,
 		"password": ""

@@ -45,14 +45,14 @@ spec:
         - name: rpc
           protocol: TCP
           containerPort: 3000
-        - name: bccomms
+        - name: miner
           protocol: TCP
-          containerPort: 16060
+          containerPort: 50052
         - name: bcbootstrap
           protocol: TCP
           containerPort: 16061
-        args: ['start', '--rovers', '--rpc', '--ws', '--ui', '--node', '--scookie', '${BC_SCOOKIE}', '--relay-mode']
-        imagePullPolicy: IfNotPresent
+        args: ['start', '--rovers', '--rpc', '--ws', '--ui', '--node', '--scookie', '$(BC_SCOOKIE)']
+        imagePullPolicy: Always
       restartPolicy: Always
       affinity:
         podAntiAffinity:
@@ -80,5 +80,5 @@ spec:
           rm -f /tmp/_data/db/IDENTITY;
           rm -f /tmp/_data/.chainstate.db;
           mv /tmp/_data/* /data;
-          echo done;
+          echo done!;
     # The pod template ends here

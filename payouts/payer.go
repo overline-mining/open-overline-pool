@@ -52,7 +52,7 @@ type PayoutsProcessor struct {
 
 func NewPayoutsProcessor(cfg *PayoutsConfig, backend *storage.RedisClient) *PayoutsProcessor {
 	u := &PayoutsProcessor{config: cfg, backend: backend}
-	u.rpc = rpc.NewRPCClient("PayoutsProcessor", cfg.Daemon, cfg.Timeout)
+	u.rpc = rpc.NewRPCClient("PayoutsProcessor", cfg.Daemon, "", cfg.Timeout)
 	return u
 }
 

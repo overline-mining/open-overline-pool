@@ -21,6 +21,7 @@ type RPCClient struct {
 	sync.RWMutex
 	Url         string
 	Name        string
+  SCookie     string
 	sick        bool
 	sickRate    int
 	successRate int
@@ -28,17 +29,18 @@ type RPCClient struct {
 }
 
 type GetBlockReply struct {
-	Number       string   `json:"number"`
+	Number       string   `json:"height"`
 	Hash         string   `json:"hash"`
 	Nonce        string   `json:"nonce"`
+  Distance     string   `json:"distance"`
 	Miner        string   `json:"miner"`
 	Difficulty   string   `json:"difficulty"`
-	GasLimit     string   `json:"gasLimit"`
-	GasUsed      string   `json:"gasUsed"`
-	Transactions []Tx     `json:"transactions"`
-	Uncles       []string `json:"uncles"`
+	GasLimit     string   
+	GasUsed      string   
+	Transactions []Tx     `json:"txsList"`
+	Uncles       []string 
 	// https://github.com/ethereum/EIPs/issues/95
-	SealFields []string `json:"sealFields"`
+	SealFields []string 
 }
 
 type GetBlockReplyPart struct {
@@ -49,10 +51,10 @@ type GetBlockReplyPart struct {
 const receiptStatusSuccessful = "0x1"
 
 type TxReceipt struct {
-	TxHash    string `json:"transactionHash"`
-	GasUsed   string `json:"gasUsed"`
-	BlockHash string `json:"blockHash"`
-	Status    string `json:"status"`
+	TxHash    string `json:"hash"`
+	GasUsed   string `json:"overline"`
+	BlockHash string 
+	Status    string `json:"nonce"`
 }
 
 func (r *TxReceipt) Confirmed() bool {
@@ -68,9 +70,10 @@ func (r *TxReceipt) Successful() bool {
 }
 
 type Tx struct {
-	Gas      string `json:"gas"`
-	GasPrice string `json:"gasPrice"`
+	Gas      string
+	GasPrice string 
 	Hash     string `json:"hash"`
+  Nonce    string `json:"nonce"`
 }
 
 type JSONRpcResp struct {
@@ -79,8 +82,8 @@ type JSONRpcResp struct {
 	Error  map[string]interface{} `json:"error"`
 }
 
-func NewRPCClient(name, url, timeout string) *RPCClient {
-	rpcClient := &RPCClient{Name: name, Url: url}
+func NewRPCClient(name, url, scookie, timeout string) *RPCClient {
+	rpcClient := &RPCClient{Name: name, Url: url, SCookie: scookie}
 	timeoutIntv := util.MustParseDuration(timeout)
 	rpcClient.client = &http.Client{
 		Timeout: timeoutIntv,
@@ -89,7 +92,7 @@ func NewRPCClient(name, url, timeout string) *RPCClient {
 }
 
 func (r *RPCClient) GetWork() ([]string, error) {
-	rpcResp, err := r.doPost(r.Url, "eth_getWork", []string{})
+	rpcResp, err := r.doPost(r.Url, "ol_getWork", []string{})
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +102,7 @@ func (r *RPCClient) GetWork() ([]string, error) {
 }
 
 func (r *RPCClient) GetLatestBlock() (*GetBlockReplyPart, error) {
-	rpcResp, err := r.doPost(r.Url, "eth_getBlockByNumber", []interface{}{"latest", false})
+	rpcResp, err := r.doPost(r.Url, "getLatestBlock", []string{})
 	if err != nil {
 		return nil, err
 	}
@@ -113,17 +116,17 @@ func (r *RPCClient) GetLatestBlock() (*GetBlockReplyPart, error) {
 
 func (r *RPCClient) GetBlockByHeight(height int64) (*GetBlockReply, error) {
 	params := []interface{}{fmt.Sprintf("0x%x", height), true}
-	return r.getBlockBy("eth_getBlockByNumber", params)
+	return r.getBlockBy("getBlockHeight", params)
 }
 
 func (r *RPCClient) GetBlockByHash(hash string) (*GetBlockReply, error) {
 	params := []interface{}{hash, true}
-	return r.getBlockBy("eth_getBlockByHash", params)
+	return r.getBlockBy("getBlockHash", params)
 }
 
 func (r *RPCClient) GetUncleByBlockNumberAndIndex(height int64, index int) (*GetBlockReply, error) {
 	params := []interface{}{fmt.Sprintf("0x%x", height), fmt.Sprintf("0x%x", index)}
-	return r.getBlockBy("eth_getUncleByBlockNumberAndIndex", params)
+	return r.getBlockBy("ol_getUncleByBlockNumberAndIndex", params)
 }
 
 func (r *RPCClient) getBlockBy(method string, params []interface{}) (*GetBlockReply, error) {
@@ -140,7 +143,7 @@ func (r *RPCClient) getBlockBy(method string, params []interface{}) (*GetBlockRe
 }
 
 func (r *RPCClient) GetTxReceipt(hash string) (*TxReceipt, error) {
-	rpcResp, err := r.doPost(r.Url, "eth_getTransactionReceipt", []string{hash})
+	rpcResp, err := r.doPost(r.Url, "getTx", []string{hash})
 	if err != nil {
 		return nil, err
 	}
@@ -153,7 +156,7 @@ func (r *RPCClient) GetTxReceipt(hash string) (*TxReceipt, error) {
 }
 
 func (r *RPCClient) SubmitBlock(params []string) (bool, error) {
-	rpcResp, err := r.doPost(r.Url, "eth_submitWork", params)
+	rpcResp, err := r.doPost(r.Url, "ol_submitWork", params)
 	if err != nil {
 		return false, err
 	}
@@ -162,22 +165,29 @@ func (r *RPCClient) SubmitBlock(params []string) (bool, error) {
 	return reply, err
 }
 
+type BalanceReply struct {
+  Confirmed string `json:"confirmed"`
+  Unconfirmed string `json:"unconfirmed"`
+  Collateralized string `json:"collateralized"`
+  Unlockable string `json:"unlockable"`
+}
+
 func (r *RPCClient) GetBalance(address string) (*big.Int, error) {
-	rpcResp, err := r.doPost(r.Url, "eth_getBalance", []string{address, "latest"})
+	rpcResp, err := r.doPost(r.Url, "getBalance", []string{address})
 	if err != nil {
 		return nil, err
 	}
-	var reply string
+	var reply BalanceReply
 	err = json.Unmarshal(*rpcResp.Result, &reply)
 	if err != nil {
 		return nil, err
 	}
-	return util.String2Big(reply), err
+	return util.String2Big(reply.Confirmed), err
 }
 
 func (r *RPCClient) Sign(from string, s string) (string, error) {
 	hash := sha256.Sum256([]byte(s))
-	rpcResp, err := r.doPost(r.Url, "eth_sign", []string{from, hexutil.Encode(hash[:])})
+	rpcResp, err := r.doPost(r.Url, "ol_sign", []string{from, hexutil.Encode(hash[:])})
 	var reply string
 	if err != nil {
 		return reply, err
@@ -215,7 +225,7 @@ func (r *RPCClient) SendTransaction(from, to, gas, gasPrice, value string, autoG
 		params["gas"] = gas
 		params["gasPrice"] = gasPrice
 	}
-	rpcResp, err := r.doPost(r.Url, "eth_sendTransaction", []interface{}{params})
+	rpcResp, err := r.doPost(r.Url, "sendTx", []interface{}{params})
 	var reply string
 	if err != nil {
 		return reply, err
@@ -239,6 +249,7 @@ func (r *RPCClient) doPost(url string, method string, params interface{}) (*JSON
 	data, _ := json.Marshal(jsonReq)
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(data))
+  req.SetBasicAuth("", r.SCookie)
 	req.Header.Set("Content-Length", (string)(len(data)))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")

@@ -14,3 +14,7 @@ spec:
       protocol: TCP
       port: 3000
       targetPort: 3000
+    - name: miner
+      protocol: TCP
+      port: 50052
+      targetPort: 50052
