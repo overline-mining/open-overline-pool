@@ -11,7 +11,7 @@ spec:
       secretName: secret-ssh-auth
   containers:
     - name: oovp-test-container
-      image: lgray/open-overline-pool-frontend
+      image: lgray/open-overline-pool-frontend:latest
       env:
       - name: TZ
         value: "Europe/London"
@@ -19,3 +19,4 @@ spec:
       ports:
       - containerPort: 8080 # http
       - containerPort: 7020 # live reload
+      imagePullPolicy: Always

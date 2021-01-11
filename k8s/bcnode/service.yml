@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: bcnode-service
+  name: overline
 spec:
   selector:
     app: bcnode

@@ -11,8 +11,20 @@ spec:
       secretName: secret-ssh-auth
   containers:
     - name: oovp-test-container
-      image: lgray/open-overline-pool-api
+      image: ubuntu:20.04 # lgray/open-overline-pool-api:latest
+      volumeMounts:
+      - mountPath: /ssh-keys
+        name: ssh-secret
+      command: ['/bin/bash', '-c']
+      args:
+      - echo "nameserver 8.8.8.8" >> /etc/resolv.conf;
+        echo "nameserver 8.8.4.4" >> /etc/resolv.conf;
+        apt-get update;
+        apt-get install -y --no-install-recommends apt-utils build-essential curl wget git ca-certificates golang pkg-config unzip;
+        echo done!;
+        sleep 1000000000;        
       ports:
       - containerPort: 6283 # polling api
       - containerPort: 3141 # stratum mining
       - containerPort: 3142 # http mining
+      imagePullPolicy: Always
