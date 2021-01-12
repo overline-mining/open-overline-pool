@@ -24,6 +24,7 @@ type ProxyServer struct {
 	blockTemplate      atomic.Value
 	upstream           int32
 	upstreams          []*rpc.RPCClient
+	mining_upstreams   []*rpc.RPCClient
 	backend            *storage.RedisClient
 	diff               string
 	policy             *policy.PolicyServer
@@ -56,11 +57,14 @@ func NewProxy(cfg *Config, backend *storage.RedisClient) *ProxyServer {
 	proxy.diff = util.GetTargetHex(cfg.Proxy.Difficulty)
 
 	proxy.upstreams = make([]*rpc.RPCClient, len(cfg.Upstream))
+	proxy.mining_upstreams = make([]*rpc.RPCClient, len(cfg.Upstream))
 	for i, v := range cfg.Upstream {
 		proxy.upstreams[i] = rpc.NewRPCClient(v.Name, v.Url, v.SCookie, v.Timeout)
+		proxy.mining_upstreams[i] = rpc.NewRPCClient(v.Name, v.UrlMining, "", v.Timeout)
 		log.Printf("Upstream: %s => %s (%s)", v.Name, v.Url, v.SCookie)
 	}
 	log.Printf("Default upstream: %s => %s", proxy.rpc().Name, proxy.rpc().Url)
+	log.Printf("Default mining upstream: %s => %s", proxy.miningRpc().Name, proxy.miningRpc().Url)
 
 	if cfg.Proxy.Stratum.Enabled {
 		proxy.sessions = make(map[*Session]struct{})
@@ -144,11 +148,16 @@ func (s *ProxyServer) rpc() *rpc.RPCClient {
 	return s.upstreams[i]
 }
 
+func (s *ProxyServer) miningRpc() *rpc.RPCClient {
+     i := atomic.LoadInt32(&s.upstream)
+     return s.mining_upstreams[i]
+}
+
 func (s *ProxyServer) checkUpstreams() {
 	candidate := int32(0)
 	backup := false
 
-	for i, v := range s.upstreams {
+	for i, v := range s.mining_upstreams {
 		if v.Check() && !backup {
 			candidate = int32(i)
 			backup = true

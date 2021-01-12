@@ -49,8 +49,9 @@ func (b Block) NumberU64() uint64        { return b.number }
 
 func (s *ProxyServer) fetchBlockTemplate() {
 	r := s.rpc()
+	r_mine := s.miningRpc()
 	t := s.currentBlockTemplate()
-	reply, err := r.GetWork()
+	reply, err := r_mine.GetWork()
 	if err != nil {
 		log.Printf("Error while refreshing block template on %s: %s", r.Name, err)
 		return

@@ -66,13 +66,15 @@
 	"upstream": [
 		{
 			"name": "main",
-			"url": "http://overline:3000/rpc",
+		        "url": "http://overline:3000/rpc",
+                        "urlMining": "http://overline:3001",
                         "scookie": "correct-horse-battery-staple",
 			"timeout": "10s"
 		},
 		{
 			"name": "backup",
-			"url": "http://overline2:3000/rpc",
+		        "url": "http://overline2:3000/rpc",
+                        "urlMining": "http://overline2:3001",
                         "scookie": "correct-horse-battery-staple",
 			"timeout": "10s"
 		}

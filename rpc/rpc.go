@@ -94,15 +94,13 @@ func NewRPCClient(name, url, scookie, timeout string) *RPCClient {
 }
 
 func (r *RPCClient) GetWork() ([]string, error) {
-	rpcResp, err := r.doPost(r.Url, "getLatestBlock", []string{}) // fixme!
+	rpcResp, err := r.doPost(r.Url, "ol_getWork", []string{}) // fixme!
 	if err != nil {
 		return nil, err
 	}
-	var reply *GetBlockReplyPart
+	var reply []string
 	err = json.Unmarshal(*rpcResp.Result, &reply)
-	var out []string
-	out = []string{reply.Hash, reply.Hash, reply.Difficulty, string(reply.Number)}
-	return out, err
+	return reply, err
 }
 
 func (r *RPCClient) GetLatestBlock() (*GetBlockReplyPart, error) {
