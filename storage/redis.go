@@ -29,7 +29,7 @@ type RedisClient struct {
 type BlockData struct {
 	Height         int64    `json:"height"`
 	Timestamp      int64    `json:"timestamp"`
-	Difficulty     int64    `json:"difficulty"`
+	Difficulty     int64   `json:"difficulty"`
 	TotalShares    int64    `json:"shares"`
 	Uncle          bool     `json:"-"`
 	UncleHeight    int64    `json:"-"`

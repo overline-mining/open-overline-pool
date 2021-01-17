@@ -11,7 +11,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/lgray/open-overline-pool/rpc"
-	"github.com/lgray/open-overline-pool/util"
+	//"github.com/lgray/open-overline-pool/util"
 )
 
 const maxBacklog = 3
@@ -31,14 +31,23 @@ type BlockTemplate struct {
 	GetPendingBlockCache *rpc.GetBlockReplyPart
 	nonces               map[string]bool
 	headers              map[string]heightDiffPair
+	MinerKey             string
+	MerkleRoot           string
+	WorkId               string
 }
 
 type Block struct {
 	difficulty  *big.Int
-	hashNoNonce common.Hash
+	work        string
 	nonce       uint64
-	mixDigest   common.Hash
+	distance    uint64
 	number      uint64
+	MinerKey    string
+	MerkleRoot  string
+	WorkId      string
+	WorkerTS    int64
+	hashNoNonce common.Hash
+	mixDigest   common.Hash
 }
 
 func (b Block) Difficulty() *big.Int     { return b.difficulty }
@@ -46,6 +55,7 @@ func (b Block) HashNoNonce() common.Hash { return b.hashNoNonce }
 func (b Block) Nonce() uint64            { return b.nonce }
 func (b Block) MixDigest() common.Hash   { return b.mixDigest }
 func (b Block) NumberU64() uint64        { return b.number }
+func (b Block) Work() string             { return b.work }
 
 func (s *ProxyServer) fetchBlockTemplate() {
 	r := s.rpc()
@@ -62,11 +72,11 @@ func (s *ProxyServer) fetchBlockTemplate() {
 	}
 	diff := new(big.Int)
 	diff.SetString(reply[2], 10)
-	//log.Println(reply)
+	//log.Println(diff)
 	height, err := strconv.ParseUint(string(reply[3]), 10, 64)
 
 	pendingReply := &rpc.GetBlockReplyPart{
-		Difficulty: util.ToHex(s.config.Proxy.Difficulty),
+		Difficulty: strconv.FormatInt(s.config.Proxy.Difficulty, 10),
 		Number:     json.Number(reply[3]),
 	}
 
@@ -78,6 +88,9 @@ func (s *ProxyServer) fetchBlockTemplate() {
 		Difficulty:           diff,
 		GetPendingBlockCache: pendingReply,
 		headers:              make(map[string]heightDiffPair),
+		MinerKey:             reply[5],
+		MerkleRoot:           reply[1],
+		WorkId:               reply[4],		
 	}
 	// Copy job backlog and add current one
 	newTemplate.headers[reply[0]] = heightDiffPair{
