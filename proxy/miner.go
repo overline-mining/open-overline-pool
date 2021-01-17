@@ -13,10 +13,10 @@ import (
 
 func (s *ProxyServer) processShare(login, id, ip string, t *BlockTemplate, params []string) (bool, bool) {
      	log.Println("got params:", params)
-     	nonceDec := string(params[0])
+     	nonceDec := params[0]
 	distance, _ := strconv.ParseUint(params[1], 10, 64)
 	workerTimestamp, _ := strconv.ParseInt(params[2], 10, 64)
-	workId := string(params[3])
+	workId := params[3]
 	nonce, _ := strconv.ParseUint(nonceDec, 10, 64)
 	shareDiff := s.config.Proxy.Difficulty
 
@@ -47,7 +47,7 @@ func (s *ProxyServer) processShare(login, id, ip string, t *BlockTemplate, param
 		nonce:       nonce,
 		MinerKey:    t.MinerKey,
 		MerkleRoot:  t.MerkleRoot,
-		WorkId:      t.WorkId,
+		WorkId:      workId,
 		WorkerTS:    workerTimestamp,
 	}
 
@@ -56,9 +56,14 @@ func (s *ProxyServer) processShare(login, id, ip string, t *BlockTemplate, param
 		return false, false
 	}
 
+
+	// prepare block submission
+	params_out := []string{workId, nonceDec, t.Difficulty.String(), params[1],
+		               params[2], "0", "0"}
+
 	if olhash.Verify(block.difficulty, block.work, block.MinerKey,
 	                 block.MerkleRoot, block.nonce, block.WorkerTS) {
-		ok, err := s.miningRpc().SubmitBlock(params)
+		ok, err := s.miningRpc().SubmitBlock(params_out)
 		if err != nil {
 			log.Printf("Block submission failure at height %v for %v: %v", t.Height, t.Header, err)
 		} else if !ok {
@@ -66,7 +71,7 @@ func (s *ProxyServer) processShare(login, id, ip string, t *BlockTemplate, param
 			return false, false
 		} else {
 			s.fetchBlockTemplate()
-			exist, err := s.backend.WriteBlock(login, id, params, shareDiff, t.Difficulty.Int64(), t.Height, s.hashrateExpiration)
+			exist, err := s.backend.WriteBlock(login, id, params_out, shareDiff, t.Difficulty.Int64(), t.Height, s.hashrateExpiration)
 			if exist {
 				return true, false
 			}
@@ -78,7 +83,7 @@ func (s *ProxyServer) processShare(login, id, ip string, t *BlockTemplate, param
 			log.Printf("Block found by miner %v@%v at height %d", login, ip, t.Height)
 		}
 	} else {
-		exist, err := s.backend.WriteShare(login, id, params, shareDiff, t.Height, s.hashrateExpiration)
+		exist, err := s.backend.WriteShare(login, id, params_out, shareDiff, t.Height, s.hashrateExpiration)
 		if exist {
 			return true, false
 		}
