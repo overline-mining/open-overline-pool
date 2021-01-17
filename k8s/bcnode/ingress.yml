@@ -13,6 +13,6 @@ spec:
               pathType: Prefix
               backend:
                 service:
-                  name: bcnode-service
+                  name: overline
                   port:
                     number: 16061
