@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"errors"
+	"strconv"
 	"io"
 	"log"
 	"net"
@@ -196,7 +197,7 @@ func (s *ProxyServer) broadcastNewJobs() {
 	if t == nil || len(t.Header) == 0 || s.isSick() {
 		return
 	}
-	reply := []string{t.Header, t.Seed, s.diff}
+	reply := []string{t.Header, t.Seed, s.diff, strconv.FormatUint(t.Height, 10), t.MinerKey, t.WorkId}
 
 	s.sessionsMu.RLock()
 	defer s.sessionsMu.RUnlock()
