@@ -1,7 +1,7 @@
 package olhash
 
 import (
-        "log"
+        //"log"
         "math"
 	"encoding/hex"
         "math/big"
@@ -52,15 +52,15 @@ func eval(work []byte, miner_key []byte, merkle_root []byte,
      nonce_hash_str := hex.EncodeToString(blake2bl_from_bytes(nonce_bytes))
      nonce_hash := []byte(nonce_hash_str)
 
-     log.Println("work", string(work), len(work))
-     log.Println("stringy nonce hash", nonce_hash_str, len(nonce_hash_str))
-     log.Println("len(nonce_hash)", len(nonce_hash))
+     //log.Println("work", string(work), len(work))
+     //log.Println("stringy nonce hash", nonce_hash_str, len(nonce_hash_str))
+     //log.Println("len(nonce_hash)", len(nonce_hash))
 
      tohash := append(miner_key, merkle_root...)
      tohash = append(tohash, nonce_hash...)
      tohash = append(tohash, timestamp_bytes...)
 
-     log.Println("tohash string ->", string(tohash))
+     //log.Println("tohash string ->", string(tohash))
 
      guess := []byte(hex.EncodeToString(blake2bl_from_bytes(tohash)))
 
@@ -74,15 +74,15 @@ func Verify(Difficulty *big.Int, Work string, MinerKey string, MerkleRoot string
      nonce       := Nonce
      ts          := Timestamp
 
-     log.Println("work        = ", Work)
-     log.Println("miner key   = ", MinerKey)
-     log.Println("merkle root = ", MerkleRoot)
-     log.Println("nonce       = ", Nonce)
-     log.Println("timestamp   = ", Timestamp)
+     //log.Println("work        = ", Work)
+     //log.Println("miner key   = ", MinerKey)
+     //log.Println("merkle root = ", MerkleRoot)
+     //log.Println("nonce       = ", Nonce)
+     //log.Println("timestamp   = ", Timestamp)
 
      calc_dist := eval(work, miner_key, merkle_root, nonce, ts)     
 
-     log.Println("recalc distance:", calc_dist)     
+     //log.Println("recalc distance:", calc_dist)     
 
      return calc_dist >= Difficulty.Uint64()
 }
