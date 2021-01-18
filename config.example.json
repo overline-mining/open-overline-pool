@@ -91,7 +91,7 @@
 	"unlocker": {
 		"enabled": false,
 		"poolFee": 1.0,
-		"poolFeeAddress": "",
+		"poolFeeAddress": "0x700374fb1e438f8c2624ff49412714e94f619b3b",
 		"donate": true,
 		"depth": 120,
 		"immatureDepth": 20,
@@ -107,7 +107,7 @@
 		"interval": "120m",
 		"daemon": "http://ethereum:8545",
 		"timeout": "10s",
-		"address": "0x0",
+		"address": "0x700374fb1e438f8c2624ff49412714e94f619b3b",
 		"gas": "21000",
 		"gasPrice": "50000000000",
 		"autoGas": true,
