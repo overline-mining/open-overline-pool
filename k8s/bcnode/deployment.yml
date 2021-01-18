@@ -93,9 +93,10 @@ spec:
           echo "nameserver 8.8.4.4" >> /etc/resolv.conf;
           apt-get update && apt-get install -y wget unzip;
           until [ -f .uploaded ]; do sleep 1; ls -lh _easysync_db.tar.gz; done;
-          tar -xvzf _easysync_db.tar.gz -C /tmp;
-          rm -f /tmp/_data/db/IDENTITY;
-          rm -f /tmp/_data/.chainstate.db;
-          mv /tmp/_data/* /data;
+          tar -xvzf _easysync_db.tar.gz -C /data --strip-components=2;
+          rm /data/db/IDENTITY;
+          rm /data/.chainstate.db;
+          rm _easysync_db.tar.gz;
+          rm .uploaded;
           echo done!;
     # The pod template ends here

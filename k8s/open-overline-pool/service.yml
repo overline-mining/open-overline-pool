@@ -18,4 +18,4 @@ spec:
   selector:
     app: open-overline-pool
   externalIPs:
-    - 192.168.49.2
+    - 79.141.71.199
