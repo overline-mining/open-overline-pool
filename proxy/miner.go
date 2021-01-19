@@ -59,7 +59,7 @@ func (s *ProxyServer) processShare(login, id, ip string, t *BlockTemplate, param
 
 	// prepare block submission
 	params_out := []string{workId, nonceDec, t.Difficulty.String(), params[1],
-		               params[2], "0", "0"}
+      		               params[2], "0", "0"}
 
 	if olhash.Verify(block.difficulty, block.work, block.MinerKey,
 	                 block.MerkleRoot, block.nonce, block.WorkerTS) {

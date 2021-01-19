@@ -54,18 +54,7 @@ spec:
         args: ['start', '--rovers', '--rpc', '--ws', '--ui', '--node', '--scookie', '$(BC_SCOOKIE)']
         imagePullPolicy: Always
       - name: mining-api-reformatter
-        image: ubuntu:20.04 # lgray/mining-api-reformatter:latest
-        volumeMounts:
-        - mountPath: /ssh-keys
-          name: ssh-secret
-        command: ['/bin/bash', '-c']
-        args:
-        - echo "nameserver 8.8.8.8" >> /etc/resolv.conf;
-          echo "nameserver 8.8.4.4" >> /etc/resolv.conf;
-          apt-get update;
-          apt-get install -y --no-install-recommends apt-utils build-essential curl wget git ca-certificates python3 python3-pip pkg-config unzip;
-          echo done!;
-          sleep 1000000000;
+        image: lgray/mining-api-reformatter:latest
         ports:
         - containerPort: 50052 # mining port
         - containerPort: 3001  # jsonrpc

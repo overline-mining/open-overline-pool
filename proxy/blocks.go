@@ -62,6 +62,11 @@ func (s *ProxyServer) fetchBlockTemplate() {
 	r_mine := s.miningRpc()
 	t := s.currentBlockTemplate()
 	reply, err := r_mine.GetWork()
+
+  if len(reply) == 0 {
+    log.Printf("No block template from node yet!")
+  }
+  
 	if err != nil {
 		log.Printf("Error while refreshing block template on %s: %s", r.Name, err)
 		return
