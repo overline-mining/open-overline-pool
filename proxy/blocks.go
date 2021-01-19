@@ -63,8 +63,9 @@ func (s *ProxyServer) fetchBlockTemplate() {
 	t := s.currentBlockTemplate()
 	reply, err := r_mine.GetWork()
 
-  if len(reply[0]) == 0 {
+  if len(reply) == 0 || len(reply[0]) == 0 {
     log.Printf("No block template from node yet!")
+    return
   }
   
 	if err != nil {
