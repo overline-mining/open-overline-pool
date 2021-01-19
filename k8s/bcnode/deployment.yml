@@ -18,9 +18,6 @@ spec:
       volumes:
       - name: bcnode-db
         emptyDir: {}
-      - name: ssh-secret
-        secret:
-          secretName: secret-ssh-auth
       containers:
       - name: bcnode
         image: lgray/bcnode:latest
@@ -32,6 +29,10 @@ spec:
           value: "0xf34fa87db39d15471bebe997860dcd49fc259318"
         - name: BC_SCOOKIE
           value: "correct-horse-battery-staple"
+        #- name: BC_MINER_BOOT
+        #  value: "true"
+        #- name: BC_LOG
+        #  value: "debug"
         - name: BC_NETWORK
           value: "main"
         - name: MIN_HEALTH_NET
