@@ -89,6 +89,6 @@ spec:
             rm /data/.chainstate.db;
             rm _easysync_db.tar.gz;
             rm .uploaded;
-          fi
-          echo done!;
+          fi;
+          echo "done!";
     # The pod template ends here
