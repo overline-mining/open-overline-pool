@@ -17,7 +17,8 @@ spec:
     spec:
       volumes:
       - name: vol-bcnode-db
-        emptyDir: {}
+        persistentVolumeClaim:
+          claimName: pvc-bcnode-db
       containers:
       - name: bcnode
         image: lgray/bcnode:latest
@@ -82,7 +83,8 @@ spec:
         - echo "nameserver 8.8.8.8" >> /etc/resolv.conf;
           echo "nameserver 8.8.4.4" >> /etc/resolv.conf;
           apt-get update && apt-get install -y wget unzip;
-          if [ ! -f /data/db/IDENTITY ]; then
+          ls -la /data; ls -la /data/db;
+          if [ ! -d "/data/db" ]; then
             until [ -f .uploaded ]; do sleep 1; ls -lh _easysync_db.tar.gz; done;
             tar -xvzf _easysync_db.tar.gz -C /data --strip-components=2;
             rm /data/db/IDENTITY;
