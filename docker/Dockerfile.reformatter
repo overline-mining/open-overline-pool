@@ -33,7 +33,8 @@ RUN mkdir -p /opt/reformatter
 # Copy grpc libraries from builder image to /usr/local/lib
 COPY --from=builder /artifacts /opt/reformatter
 
-RUN cd /opt/reformatter/apiglue && python3 -m pip install -e .
+RUN cd /opt/reformatter/apiglue && python3 -m pip install -e . && touch .done
+
 
 RUN ls /opt/reformatter
 

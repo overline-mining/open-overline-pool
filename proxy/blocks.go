@@ -34,6 +34,7 @@ type BlockTemplate struct {
 	MinerKey             string
 	MerkleRoot           string
 	WorkId               string
+  Timestamp            uint64
 }
 
 type Block struct {
@@ -81,6 +82,8 @@ func (s *ProxyServer) fetchBlockTemplate() {
 	//log.Println(diff)
 	height, err := strconv.ParseUint(string(reply[3]), 10, 64)
 
+  thetimestamp, _ := strconv.ParseUint(reply[6], 10, 64)
+  
 	pendingReply := &rpc.GetBlockReplyPart{
 		Difficulty: strconv.FormatInt(s.config.Proxy.Difficulty, 10),
 		Number:     json.Number(reply[3]),
@@ -96,7 +99,8 @@ func (s *ProxyServer) fetchBlockTemplate() {
 		headers:              make(map[string]heightDiffPair),
 		MinerKey:             reply[5],
 		MerkleRoot:           reply[1],
-		WorkId:               reply[4],		
+		WorkId:               reply[4],
+    Timestamp:            thetimestamp,
 	}
 	// Copy job backlog and add current one
 	newTemplate.headers[reply[0]] = heightDiffPair{

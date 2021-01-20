@@ -28,7 +28,7 @@ func (s *ProxyServer) processShare(login, id, ip string, t *BlockTemplate, param
 	}
 
 	share := Block{
-	      	work:        t.Header,
+   	work:        t.Header,
 		number:      t.Height,
 		difficulty:  big.NewInt(shareDiff),
 		distance:    distance,
@@ -40,7 +40,7 @@ func (s *ProxyServer) processShare(login, id, ip string, t *BlockTemplate, param
 	}
 
 	block := Block{
-	        work:        t.Header,
+    work:        t.Header,
 		number:      t.Height,
 		difficulty:  t.Difficulty,
 		distance:    distance, 
@@ -52,7 +52,7 @@ func (s *ProxyServer) processShare(login, id, ip string, t *BlockTemplate, param
 	}
 
 	if !olhash.Verify(share.difficulty, share.work, share.MinerKey,
-	   	          share.MerkleRoot, share.nonce, share.WorkerTS) {
+    	   	          share.MerkleRoot, share.nonce, share.WorkerTS) {
 		return false, false
 	}
 

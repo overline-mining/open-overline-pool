@@ -12,8 +12,6 @@ import (
 	//"github.com/ethereum/go-ethereum/common"
 )
 
-
-
 func blake2bl_from_bytes(data []byte) []byte {
      hash := blake2b.Sum512(data)
      return hash[32:]
