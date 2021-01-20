@@ -16,14 +16,14 @@ spec:
         app: bcnode
     spec:
       volumes:
-      - name: bcnode-db
+      - name: vol-bcnode-db
         emptyDir: {}
       containers:
       - name: bcnode
         image: lgray/bcnode:latest
         volumeMounts:
         - mountPath: /bc/_data
-          name: bcnode-db
+          name: vol-bcnode-db
         env:
         - name: BC_MINER_KEY
           value: "0xf34fa87db39d15471bebe997860dcd49fc259318"
@@ -76,17 +76,19 @@ spec:
         image: ubuntu:20.04
         volumeMounts:
         - mountPath: /data
-          name: bcnode-db
+          name: vol-bcnode-db
         command: ['sh','-c']
         args:
         - echo "nameserver 8.8.8.8" >> /etc/resolv.conf;
           echo "nameserver 8.8.4.4" >> /etc/resolv.conf;
           apt-get update && apt-get install -y wget unzip;
-          until [ -f .uploaded ]; do sleep 1; ls -lh _easysync_db.tar.gz; done;
-          tar -xvzf _easysync_db.tar.gz -C /data --strip-components=2;
-          rm /data/db/IDENTITY;
-          rm /data/.chainstate.db;
-          rm _easysync_db.tar.gz;
-          rm .uploaded;
+          if [ ! -f /data/db/IDENTITY ]; then
+            until [ -f .uploaded ]; do sleep 1; ls -lh _easysync_db.tar.gz; done;
+            tar -xvzf _easysync_db.tar.gz -C /data --strip-components=2;
+            rm /data/db/IDENTITY;
+            rm /data/.chainstate.db;
+            rm _easysync_db.tar.gz;
+            rm .uploaded;
+          fi
           echo done!;
     # The pod template ends here
