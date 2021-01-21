@@ -923,7 +923,7 @@ func convertMinersStats(window int64, raw *redis.ZSliceCmd) (int64, map[string]M
 		id := parts[1]
 		score := int64(v.Score)
 		miner := miners[id]
-		miner.HR += int64(float64(share) / (2.0 * 1.4764e8))
+		miner.HR += int64(float64(share) / (1.312402e8))
 
 		if miner.LastBeat < score {
 			miner.LastBeat = score

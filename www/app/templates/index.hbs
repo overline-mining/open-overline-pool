@@ -30,7 +30,7 @@
   <div class="stats">
     <h4>Your Stats &amp; Payment History</h4>
     <div class="input-group">
-      {{input value=cachedLogin class="form-control" placeholder="Enter Your Ethereum Address"}}
+      {{input value=cachedLogin class="form-control" placeholder="Enter Your Overline Address"}}
       <span class="input-group-btn">
         <button class="btn btn-primary" type="button" {{action 'lookup' cachedLogin}}>
           <span style="display: inline;"><i class="fa fa-search"></i> Lookup</span>
@@ -41,7 +41,7 @@
   <div>
     <hr/>
     <h4 class="note note-info text-center">
-      ethminer.exe -F {{config.HttpHost}}:{{config.HttpPort}}/&lt;address&gt;/&lt;worker&gt; -G
+      olminer --cpu -P stratum://&lt;address&gt;@{{config.StratumHost}}:{{config.StratumPort}}
     </h4>
   </div>
 </div>
