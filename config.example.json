@@ -11,7 +11,7 @@
 		"behindReverseProxy": false,
 		"blockRefreshInterval": "120ms",
 		"stateUpdateInterval": "3s",
-                "difficulty": 300000000000000,
+    "difficulty": 300000000000000,
 		"hashrateExpiration": "3h",
 
 		"healthCheck": true,
@@ -85,7 +85,8 @@
                 "followEndpoint": "redis-follower:6379",
 		"poolSize": 10,
 		"database": 0,
-		"password": ""
+		"password": "",
+    "diffToHashRate": 7.61961655e-9
 	},
 
 	"unlocker": {

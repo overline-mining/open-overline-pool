@@ -18,12 +18,14 @@ type Config struct {
 	Password string `json:"password"`
 	Database int64  `json:"database"`
 	PoolSize int    `json:"poolSize"`
+  DiffToHashRate float64 `json:"diffToHashRate"`
 }
 
 type RedisClient struct {
   _leadClient *redis.Client
 	_followClient *redis.Client
 	prefix string
+  diffToHashRate float64
 }
 
 type BlockData struct {
@@ -93,7 +95,8 @@ func NewRedisClient(cfg *Config, prefix string) *RedisClient {
     DB:       cfg.Database,
     PoolSize: cfg.PoolSize,
   })
-	return &RedisClient{_leadClient: leadClient, _followClient: followClient, prefix: prefix}
+	return &RedisClient{_leadClient: leadClient, _followClient: followClient,
+                      prefix: prefix, diffToHashRate: cfg.DiffToHashRate}
 }
 
 func (r *RedisClient) ReadClient() *redis.Client {
@@ -709,7 +712,7 @@ func (r *RedisClient) CollectStats(smallWindow time.Duration, maxBlocks, maxPaym
 	stats["payments"] = payments
 	stats["paymentsTotal"] = cmds[9].(*redis.IntCmd).Val()
 
-	totalHashrate, miners := convertMinersStats(window, cmds[1].(*redis.ZSliceCmd))
+	totalHashrate, miners := convertMinersStats(window, cmds[1].(*redis.ZSliceCmd), r.diffToHashRate)
 	stats["miners"] = miners
 	stats["minersTotal"] = len(miners)
 	stats["hashrate"] = totalHashrate
@@ -740,7 +743,7 @@ func (r *RedisClient) CollectWorkersStats(sWindow, lWindow time.Duration, login 
 	currentHashrate := int64(0)
 	online := int64(0)
 	offline := int64(0)
-	workers := convertWorkersStats(smallWindow, cmds[1].(*redis.ZSliceCmd))
+	workers := convertWorkersStats(smallWindow, cmds[1].(*redis.ZSliceCmd), r.diffToHashRate)
 
 	for id, worker := range workers {
 		timeOnline := now - worker.startedAt
@@ -882,7 +885,7 @@ func convertBlockResults(rows ...*redis.ZSliceCmd) []*BlockData {
 
 // Build per login workers's total shares map {'rig-1': 12345, 'rig-2': 6789, ...}
 // TS => diff, id, ms
-func convertWorkersStats(window int64, raw *redis.ZSliceCmd) map[string]Worker {
+func convertWorkersStats(window int64, raw *redis.ZSliceCmd, diffToHashRate float64) map[string]Worker {
 	now := util.MakeTimestamp() / 1000
 	workers := make(map[string]Worker)
 
@@ -894,11 +897,11 @@ func convertWorkersStats(window int64, raw *redis.ZSliceCmd) map[string]Worker {
 		worker := workers[id]
 
 		// Add for large window
-		worker.TotalHR += share
+		worker.TotalHR += int64(float64(share) * diffToHashRate)
 
 		// Add for small window if matches
 		if score >= now-window {
-			worker.HR += share
+			worker.HR += int64(float64(share) * diffToHashRate)
 		}
 
 		if worker.LastBeat < score {
@@ -912,7 +915,7 @@ func convertWorkersStats(window int64, raw *redis.ZSliceCmd) map[string]Worker {
 	return workers
 }
 
-func convertMinersStats(window int64, raw *redis.ZSliceCmd) (int64, map[string]Miner) {
+func convertMinersStats(window int64, raw *redis.ZSliceCmd, diffToHashRate float64) (int64, map[string]Miner) {
 	now := util.MakeTimestamp() / 1000
 	miners := make(map[string]Miner)
 	totalHashrate := int64(0)
@@ -923,7 +926,7 @@ func convertMinersStats(window int64, raw *redis.ZSliceCmd) (int64, map[string]M
 		id := parts[1]
 		score := int64(v.Score)
 		miner := miners[id]
-		miner.HR += int64(float64(share) / (1.312402e8))
+		miner.HR += int64(float64(share) * diffToHashRate)
 
 		if miner.LastBeat < score {
 			miner.LastBeat = score
