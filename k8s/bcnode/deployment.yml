@@ -27,7 +27,7 @@ spec:
           name: vol-bcnode-db
         env:
         - name: BC_MINER_KEY
-          value: "0xf34fa87db39d15471bebe997860dcd49fc259318"
+          value: "0x700374fb1e438f8c2624ff49412714e94f619b3b"
         - name: BC_SCOOKIE
           value: "correct-horse-battery-staple"
         #- name: BC_MINER_BOOT
