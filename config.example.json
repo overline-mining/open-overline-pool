@@ -97,7 +97,7 @@
 		"depth": 300,
 		"immatureDepth": 100,
 		"keepTxFees": false,
-		"interval": "10m",
+		"interval": "10s",
 		"daemon": "http://overline:3000/rpc",
     "scookie": "correct-horse-battery-staple",
 		"timeout": "10s"
