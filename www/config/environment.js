@@ -15,14 +15,14 @@ module.exports = function(environment) {
 
     APP: {
       // API host and port
-      ApiUrl: 'http://157.245.116.220:6283/', // 185.209.114.83
+      ApiUrl: 'http://localhost:6283/', // 185.209.114.83
 
       // HTTP mining endpoint
-      HttpHost: 'http://157.245.116.220',
+      HttpHost: 'http://localhost',
       HttpPort: 3142,
 
       // Stratum mining endpoint
-      StratumHost: '157.245.116.220',
+      StratumHost: 'localhost',
       StratumPort: 3141,
 
       // Fee and payout details
