@@ -82,7 +82,7 @@
 
 	"redis": {
 		"leadEndpoint": "redis-leader:6379",
-                "followEndpoint": "redis-follower:6379",
+    "followEndpoint": "redis-follower:6379",
 		"poolSize": 10,
 		"database": 0,
 		"password": "",
@@ -90,25 +90,28 @@
 	},
 
 	"unlocker": {
-		"enabled": false,
+		"enabled": true,
 		"poolFee": 1.0,
 		"poolFeeAddress": "0x700374fb1e438f8c2624ff49412714e94f619b3b",
 		"donate": true,
-		"depth": 120,
-		"immatureDepth": 20,
+		"depth": 300,
+		"immatureDepth": 100,
 		"keepTxFees": false,
 		"interval": "10m",
-		"daemon": "http://ethereum:8545",
+		"daemon": "http://overline:3000/rpc",
+    "scookie" "correct-horse-battery-staple",  
 		"timeout": "10s"
 	},
 
 	"payouts": {
 		"enabled": false,
-		"requirePeers": 25,
+		"requirePeers":25,
 		"interval": "120m",
-		"daemon": "http://ethereum:8545",
+		"daemon": "http://overline:3000/rpc",
+    "scookie": "correct-horse-battery-staple",  
 		"timeout": "10s",
 		"address": "0x700374fb1e438f8c2624ff49412714e94f619b3b",
+    "privateKey": "/path/to/secret",
 		"gas": "21000",
 		"gasPrice": "50000000000",
 		"autoGas": true,

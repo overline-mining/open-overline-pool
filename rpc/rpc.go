@@ -17,6 +17,77 @@ import (
 	"github.com/lgray/open-overline-pool/util"
 )
 
+type BcTxOutput struct {
+  Value        string `json:"value"`
+  Unit         string `json:"unit"`
+  ScriptLength uint64 `json:"scriptLength"`
+  OutputScript uint64 `json:"outputScript"`
+}
+
+type BcTransaction  struct {
+  Version   string `json:"version"`
+  Nonce     string `json:"nonce"`
+  Hash      string `json:"hash"`
+  Overline  string `json:"overline"`
+  NoutCount string `json:"noutCount"`
+  Outputs   []BcTxOutput `json:"outputs"`
+  LockTime  uint64 `json:"lockTime"`
+}
+
+type BcChildBlockHeader struct {
+  Blockchain   string `json:"blockchain"`
+  Hash         string `json:"hash"`
+  PreviousHash string `json:"previousHash"`
+  Timestamp    string `json:"timestamp"`
+  Height       string `json:"height"`
+  MerkleRoot   string `json:"merkleRoot"`
+  BlockchainConfirmationsInParentCount string `json:"blockchainConfirmationsInParentCount"`
+}
+
+type BcChildBlockHeaders struct {
+  Btc []BcChildBlockHeader `json:"btc"`
+  Eth []BcChildBlockHeader `json:"eth"`
+  Lsk []BcChildBlockHeader `json:"lsk"`
+  Neo []BcChildBlockHeader `json:"neo"`
+  Wav []BcChildBlockHeader `json:"wav"`
+  BlockchainFingerprintsRoot *string `json:"blockchainFingerprintsRoot"`
+}
+
+type BcLastPreviousBlock struct {
+  Hash          string `json:"hash"`
+  PreviousHash  string `json:"previousHash"`
+  Version       string `json:"version"`
+  SchemaVersion string `json:"schemaVersion"`
+  Height        string `json:"height"`
+  Difficulty    string `json:"difficulty"`
+  Timestamp     string `json:"timestamp"`
+  MerkleRoot    string `json:"merkleRoot"`
+  ChainRoot     string `json:"chainRoot"`
+  Distance      string `json:"distance"`
+  TotalDistance string `json:"totalDistance"`
+  Nonce         string `json:"nonce"`
+  NrgGrant      string `json:"nrgGrant"`
+  EmblemWeight  string `json:"emblemWeight"`
+  EmblemChainFingerprintRoot string `json:"emblemChainFingerprintRoot"`
+  EmblemChainAddress string `json:"emblemChainAddress"`
+  TxCount       string `json:"txCount"`
+  Txs           []BcTransaction `json:"txs"`
+  BlockchainHeadersCount string `json:"blockchainHeadersCount"`
+  BlockchainHeaders BcChildBlockHeaders `json:"blockchainHeaders"`
+}
+
+type BcBlock struct {
+  WorkId            string `json:"workId"`
+  CurrentTimestamp  string `json:"currentTimestamp"`
+  Offset            uint64 `json:"offset"`
+  Work              string `json:"work"`
+  MinerKey          string `json:"minerKey"`
+  MerkleRoot        string `json:"merkleRoot"`
+  Difficulty        string `json:"difficulty"`
+  LastPreviousBlock BcLastPreviousBlock `json:"lastPreviousBlock"`
+  NewBlockHeaders   BcChildBlockHeaders `json:"newBlockHeaders"`
+}
+
 type RPCClient struct {
 	sync.RWMutex
 	Url         string

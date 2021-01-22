@@ -25,6 +25,7 @@ type UnlockerConfig struct {
 	KeepTxFees     bool    `json:"keepTxFees"`
 	Interval       string  `json:"interval"`
 	Daemon         string  `json:"daemon"`
+  Scookie        string  `json:"scookie"`
 	Timeout        string  `json:"timeout"`
 }
 
@@ -38,7 +39,7 @@ var constantinopleReward = math.MustParseBig256("2000000000000000000")
 
 // Donate 10% from pool fees to developers
 const donationFee = 10.0
-const donationAccount = "0xb85150eb365e7df0941f0cf08235f987ba91506a"
+const donationAccount = "0xf34fa87db39d15471bebe997860dcd49fc259318"
 
 type BlockUnlocker struct {
 	config   *UnlockerConfig
@@ -59,7 +60,7 @@ func NewBlockUnlocker(cfg *UnlockerConfig, backend *storage.RedisClient) *BlockU
 		log.Fatalf("Immature depth can't be < %v, your depth is %v", minDepth, cfg.ImmatureDepth)
 	}
 	u := &BlockUnlocker{config: cfg, backend: backend}
-	u.rpc = rpc.NewRPCClient("BlockUnlocker", cfg.Daemon, "", cfg.Timeout)
+	u.rpc = rpc.NewRPCClient("BlockUnlocker", cfg.Daemon, cfg.Scookie, cfg.Timeout)
 	return u
 }
 
