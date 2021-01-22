@@ -4,7 +4,7 @@ import (
 	"log"
 	"math/big"
 	"strconv"
-  //"encoding/hex"
+  "encoding/hex"
 	//"strings"
 
 	//"github.com/ethereum/ethash"
@@ -59,10 +59,10 @@ func (s *ProxyServer) processShare(login, id, ip string, t *BlockTemplate, param
 
 
 	// prepare block submission
-  //bhash := []string{hex.EncodeToString(olhash.Blake2blFromBytes([]byte(t.LastBlockHash + t.MerkleRoot)))}
+  bhash := []string{hex.EncodeToString(olhash.Blake2blFromBytes([]byte(t.LastBlockHash + t.MerkleRoot)))}
   params_out := []string{workId, nonceDec, t.Difficulty.String(), params[1],
                          params[2], "0","0"}
-  params_db := params_out//append(params_out, bhash...)
+  params_db := append(params_out, bhash...)
 
 	if olhash.Verify(block.difficulty, block.work, block.MinerKey,
 	                 block.MerkleRoot, block.nonce, block.WorkerTS) {
