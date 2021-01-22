@@ -352,6 +352,7 @@ func (r *RPCClient) doPost(url string, method string, params interface{}) (*JSON
 		return nil, err
 	}
 	if rpcResp.Error != nil {
+    log.Println(rpcResp)
 		r.markSick()
 		return nil, errors.New(rpcResp.Error["message"].(string))
 	}
