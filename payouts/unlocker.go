@@ -107,20 +107,25 @@ func (u *BlockUnlocker) unlockCandidates(candidates []*storage.BlockData) (*Unlo
 
     blockByHash, errHeight := u.rpc.GetBlockByHash(hash)
 		blockByHeight, errHash := u.rpc.GetBlockByHeight(height)
-    
+
+    log.Println("---- block by height ----")
+    log.Println(blockByHeight)
+    log.Println("---- block by hash ----")
+    log.Println(blockByHash)
+  
 		if errHeight != nil {
 			log.Printf("Error while retrieving block %v from node: %v", height, errHeight)
 			return nil, errHeight
 		}
     if errHash != nil {
-      log.Printf("Error while retrieving block %v from node: %v", hash, errHash)
-      return nil, errHash
+      log.Printf("Error while retrieving block %v from node: %v (probably an uncle)", hash, errHash)
+      //return nil, errHash
     }
 		if blockByHeight == nil {
 			return nil, fmt.Errorf("Error while retrieving block %v from node, wrong node height", height)
 		}
     if blockByHash == nil {
-      return nil, fmt.Errorf("Error while retrieving block %v from node, wrong node hash", hash)
+      log.Printf("Error while retrieving block %v from node, wrong node hash", hash)
     }
 
     hashFound := matchCandidate(blockByHash, candidate)
