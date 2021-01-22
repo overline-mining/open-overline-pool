@@ -5,7 +5,6 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"math/big"
 	"net/http"
 	"strconv"
@@ -17,75 +16,81 @@ import (
 	"github.com/lgray/open-overline-pool/util"
 )
 
+type BcTxOutPoint struct {
+  Value string `json:"value"`
+  Hash  string `json:"hash"`
+  Index int64  `json:"index"`
+}
+
+type BcTxInput struct {
+  OutPoint BcTxOutPoint `json:"outPoint"`
+  ScriptLength uint64 `json:"scriptLength"`
+  InputScript  string `json:"inputScript"`
+}
+
 type BcTxOutput struct {
   Value        string `json:"value"`
   Unit         string `json:"unit"`
   ScriptLength uint64 `json:"scriptLength"`
-  OutputScript uint64 `json:"outputScript"`
+  OutputScript string `json:"outputScript"`
 }
 
 type BcTransaction  struct {
-  Version   string `json:"version"`
-  Nonce     string `json:"nonce"`
-  Hash      string `json:"hash"`
-  Overline  string `json:"overline"`
-  NoutCount string `json:"noutCount"`
-  Outputs   []BcTxOutput `json:"outputs"`
-  LockTime  uint64 `json:"lockTime"`
+  Version     uint64 `json:"version"`
+  Nonce       string `json:"nonce"`
+  Hash        string `json:"hash"`
+  Overline    string `json:"overline"`
+  NinCount    uint64 `json:"ninCount"`
+  NoutCount   uint64 `json:"noutCount"`
+  InputsList  []BcTxInput  `json:"inputsList"`
+  OutputsList []BcTxOutput `json:"outputsList"`
+  LockTime    uint64 `json:"lockTime"`
 }
 
 type BcChildBlockHeader struct {
   Blockchain   string `json:"blockchain"`
   Hash         string `json:"hash"`
   PreviousHash string `json:"previousHash"`
-  Timestamp    string `json:"timestamp"`
-  Height       string `json:"height"`
+  Timestamp    uint64 `json:"timestamp"`
+  Height       uint64 `json:"height"`
   MerkleRoot   string `json:"merkleRoot"`
-  BlockchainConfirmationsInParentCount string `json:"blockchainConfirmationsInParentCount"`
+  BlockchainConfirmationsInParentCount uint64 `json:"blockchainConfirmationsInParentCount"`
+  MarkedTxsList []string // fill out later!
+  MarkedTxCount uint64 `json:"markedTxCount"`
 }
 
 type BcChildBlockHeaders struct {
-  Btc []BcChildBlockHeader `json:"btc"`
-  Eth []BcChildBlockHeader `json:"eth"`
-  Lsk []BcChildBlockHeader `json:"lsk"`
-  Neo []BcChildBlockHeader `json:"neo"`
-  Wav []BcChildBlockHeader `json:"wav"`
-  BlockchainFingerprintsRoot *string `json:"blockchainFingerprintsRoot"`
+  BtcList []BcChildBlockHeader `json:"btcList"`
+  EthList []BcChildBlockHeader `json:"ethList"`
+  LskList []BcChildBlockHeader `json:"lskList"`
+  NeoList []BcChildBlockHeader `json:"neoList"`
+  WavList []BcChildBlockHeader `json:"wavList"`
+  BlockchainFingerprintsRoot string `json:"blockchainFingerprintsRoot"`
 }
 
-type BcLastPreviousBlock struct {
+type BcBlockReply struct {
   Hash          string `json:"hash"`
   PreviousHash  string `json:"previousHash"`
-  Version       string `json:"version"`
-  SchemaVersion string `json:"schemaVersion"`
-  Height        string `json:"height"`
+  Version       uint64 `json:"version"`
+  SchemaVersion uint64 `json:"schemaVersion"`
+  Height        uint64 `json:"height"`
   Difficulty    string `json:"difficulty"`
-  Timestamp     string `json:"timestamp"`
+  Timestamp     uint64 `json:"timestamp"`
   MerkleRoot    string `json:"merkleRoot"`
   ChainRoot     string `json:"chainRoot"`
   Distance      string `json:"distance"`
   TotalDistance string `json:"totalDistance"`
   Nonce         string `json:"nonce"`
-  NrgGrant      string `json:"nrgGrant"`
-  EmblemWeight  string `json:"emblemWeight"`
+  NrgGrant      float64 `json:"nrgGrant"`
+  EmblemWeight  float64 `json:"emblemWeight"`
   EmblemChainFingerprintRoot string `json:"emblemChainFingerprintRoot"`
   EmblemChainAddress string `json:"emblemChainAddress"`
-  TxCount       string `json:"txCount"`
-  Txs           []BcTransaction `json:"txs"`
-  BlockchainHeadersCount string `json:"blockchainHeadersCount"`
+  TxCount       uint64 `json:"txCount"`
+  TxsList       []BcTransaction `json:"txsList"`
+  TxFeeBase     uint64 `json:"txFeeBase"`
+  TxDistanceSumLimit uint64 `json:"txDistanceSumLimit"`
+  BlockchainHeadersCount uint64 `json:"blockchainHeadersCount"`
   BlockchainHeaders BcChildBlockHeaders `json:"blockchainHeaders"`
-}
-
-type BcBlock struct {
-  WorkId            string `json:"workId"`
-  CurrentTimestamp  string `json:"currentTimestamp"`
-  Offset            uint64 `json:"offset"`
-  Work              string `json:"work"`
-  MinerKey          string `json:"minerKey"`
-  MerkleRoot        string `json:"merkleRoot"`
-  Difficulty        string `json:"difficulty"`
-  LastPreviousBlock BcLastPreviousBlock `json:"lastPreviousBlock"`
-  NewBlockHeaders   BcChildBlockHeaders `json:"newBlockHeaders"`
 }
 
 type RPCClient struct {
@@ -187,28 +192,28 @@ func (r *RPCClient) GetLatestBlock() (*GetBlockReplyPart, error) {
 	return nil, nil
 }
 
-func (r *RPCClient) GetBlockByHeight(height int64) (*GetBlockReply, error) {
-	params := []interface{}{fmt.Sprintf("0x%x", height), true}
+func (r *RPCClient) GetBlockByHeight(height int64) (*BcBlockReply, error) {
+	params := []string{strconv.FormatInt(height, 10)}
 	return r.getBlockBy("getBlockHeight", params)
 }
 
-func (r *RPCClient) GetBlockByHash(hash string) (*GetBlockReply, error) {
-	params := []interface{}{hash, true}
+func (r *RPCClient) GetBlockByHash(hash string) (*BcBlockReply, error) {
+	params := []string{hash}
 	return r.getBlockBy("getBlockHash", params)
 }
 
-func (r *RPCClient) GetUncleByBlockNumberAndIndex(height int64, index int) (*GetBlockReply, error) {
-	params := []interface{}{fmt.Sprintf("0x%x", height), fmt.Sprintf("0x%x", index)}
+func (r *RPCClient) GetUncleByBlockNumberAndIndex(height int64, index int) (*BcBlockReply, error) {
+	params := []string{strconv.FormatInt(height, 10), strconv.FormatInt(int64(index), 10)}
 	return r.getBlockBy("ol_getUncleByBlockNumberAndIndex", params)
 }
 
-func (r *RPCClient) getBlockBy(method string, params []interface{}) (*GetBlockReply, error) {
+func (r *RPCClient) getBlockBy(method string, params []string) (*BcBlockReply, error) {
 	rpcResp, err := r.doPost(r.Url, method, params)
 	if err != nil {
 		return nil, err
 	}
 	if rpcResp.Result != nil {
-		var reply *GetBlockReply
+		var reply *BcBlockReply
 		err = json.Unmarshal(*rpcResp.Result, &reply)
 		return reply, err
 	}

@@ -139,10 +139,11 @@ func (u *BlockUnlocker) unlockCandidates(candidates []*storage.BlockData) (*Unlo
 					return nil, err
 				}
 				result.maturedBlocks = append(result.maturedBlocks, candidate)
-				log.Printf("Mature block %v with %v tx, hash: %v", candidate.Height, len(block.Transactions), candidate.Hash[0:10])
+				log.Printf("Mature block %v with %v tx, hash: %v", candidate.Height, len(block.TxsList), candidate.Hash[0:10])
 				break
 			}
 
+      /* uncles are very different beasts in BC
 			if len(block.Uncles) == 0 {
 				continue
 			}
@@ -174,6 +175,7 @@ func (u *BlockUnlocker) unlockCandidates(candidates []*storage.BlockData) (*Unlo
 					break
 				}
 			}
+      */
 			// Found block or uncle
 			if !orphan {
 				break
@@ -190,7 +192,7 @@ func (u *BlockUnlocker) unlockCandidates(candidates []*storage.BlockData) (*Unlo
 	return result, nil
 }
 
-func matchCandidate(block *rpc.GetBlockReply, candidate *storage.BlockData) bool {
+func matchCandidate(block *rpc.BcBlockReply, candidate *storage.BlockData) bool {
 	// Just compare hash if block is unlocked as immature
 	if len(candidate.Hash) > 0 && strings.EqualFold(candidate.Hash, block.Hash) {
 		return true
@@ -199,18 +201,17 @@ func matchCandidate(block *rpc.GetBlockReply, candidate *storage.BlockData) bool
 	if len(block.Nonce) > 0 {
 		return strings.EqualFold(block.Nonce, candidate.Nonce)
 	}
+  /*
 	// Parity's EIP: https://github.com/ethereum/EIPs/issues/95
 	if len(block.SealFields) == 2 {
 		return strings.EqualFold(candidate.Nonce, block.SealFields[1])
 	}
+  */
 	return false
 }
 
-func (u *BlockUnlocker) handleBlock(block *rpc.GetBlockReply, candidate *storage.BlockData) error {
-	correctHeight, err := strconv.ParseInt(strings.Replace(string(block.Number), "0x", "", -1), 16, 64)
-	if err != nil {
-		return err
-	}
+func (u *BlockUnlocker) handleBlock(block *rpc.BcBlockReply, candidate *storage.BlockData) error {
+	correctHeight := int64(block.Height)
 	candidate.Height = correctHeight
 	reward := getConstReward(candidate.Height)
 
@@ -225,10 +226,12 @@ func (u *BlockUnlocker) handleBlock(block *rpc.GetBlockReply, candidate *storage
 		reward.Add(reward, extraTxReward)
 	}
 
+  /* Bc handles uncles very differently
 	// Add reward for including uncles
 	uncleReward := getRewardForUncle(candidate.Height)
 	rewardForUncles := big.NewInt(0).Mul(uncleReward, big.NewInt(int64(len(block.Uncles))))
 	reward.Add(reward, rewardForUncles)
+  */
 
 	candidate.Orphan = false
 	candidate.Hash = block.Hash
@@ -236,11 +239,8 @@ func (u *BlockUnlocker) handleBlock(block *rpc.GetBlockReply, candidate *storage
 	return nil
 }
 
-func handleUncle(height int64, uncle *rpc.GetBlockReply, candidate *storage.BlockData) error {
-	uncleHeight, err := strconv.ParseInt(strings.Replace(string(uncle.Number), "0x", "", -1), 16, 64)
-	if err != nil {
-		return err
-	}
+func handleUncle(height int64, uncle *rpc.BcBlockReply, candidate *storage.BlockData) error {
+	uncleHeight := int64(uncle.Height)
 	reward := getUncleReward(uncleHeight, height)
 	candidate.Height = height
 	candidate.UncleHeight = uncleHeight
@@ -527,18 +527,20 @@ func getUncleReward(uHeight, height int64) *big.Int {
 	return reward
 }
 
-func (u *BlockUnlocker) getExtraRewardForTx(block *rpc.GetBlockReply) (*big.Int, error) {
+func (u *BlockUnlocker) getExtraRewardForTx(block *rpc.BcBlockReply) (*big.Int, error) {
 	amount := new(big.Int)
 
-	for _, tx := range block.Transactions {
+	for _, tx := range block.TxsList {
 		receipt, err := u.rpc.GetTxReceipt(tx.Hash)
 		if err != nil {
 			return nil, err
 		}
 		if receipt != nil {
+      /* FIX ME - BC Transactions....
 			gasUsed := util.String2Big(receipt.GasUsed)
 			gasPrice := util.String2Big(tx.GasPrice)
-			fee := new(big.Int).Mul(gasUsed, gasPrice)
+      */
+			fee := new(big.Int) //gasUsed, gasPrice)
 			amount.Add(amount, fee)
 		}
 	}
