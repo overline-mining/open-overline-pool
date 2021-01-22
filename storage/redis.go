@@ -848,6 +848,7 @@ func convertCandidateResults(raw *redis.ZSliceCmd) []*BlockData {
 		block.Nonce = fields[0]
 		block.PowHash = fields[1]
 		block.MixDigest = fields[2]
+    block.Hash = fields[7]
 		block.Timestamp, _ = strconv.ParseInt(fields[8], 10, 64)
 		block.Difficulty, _ = strconv.ParseInt(fields[9], 10, 64)
 		block.TotalShares, _ = strconv.ParseInt(fields[10], 10, 64)

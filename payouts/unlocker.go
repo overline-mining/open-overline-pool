@@ -30,12 +30,8 @@ type UnlockerConfig struct {
 }
 
 const minDepth = 16
-const byzantiumHardForkHeight = 4370000
-const constantinopleHardForkHeight = 7280000
 
-var homesteadReward = math.MustParseBig256("5000000000000000000")
-var byzantiumReward = math.MustParseBig256("3000000000000000000")
-var constantinopleReward = math.MustParseBig256("2000000000000000000")
+var afterTargetReward = math.MustParseBig256("2000000000000000000")
 
 // Donate 10% from pool fees to developers
 const donationFee = 10.0
@@ -95,13 +91,6 @@ type UnlockResult struct {
 	blocks         int
 }
 
-/* Geth does not provide consistent state when you need both new height and new job,
- * so in redis I am logging just what I have in a pool state on the moment when block found.
- * Having very likely incorrect height in database results in a weird block unlocking scheme,
- * when I have to check what the hell we actually found and traversing all the blocks with height-N and height+N
- * to make sure we will find it. We can't rely on round height here, it's just a reference point.
- * ISSUE: https://github.com/ethereum/go-ethereum/issues/2333
- */
 func (u *BlockUnlocker) unlockCandidates(candidates []*storage.BlockData) (*UnlockResult, error) {
 	result := &UnlockResult{}
 
@@ -109,78 +98,63 @@ func (u *BlockUnlocker) unlockCandidates(candidates []*storage.BlockData) (*Unlo
 	for _, candidate := range candidates {
 		orphan := true
 
-		/* Search for a normal block with wrong height here by traversing 16 blocks back and forward.
-		 * Also we are searching for a block that can include this one as uncle.
-		 */
-		for i := int64(minDepth * -1); i < minDepth; i++ {
-			height := candidate.Height + i
+  	height := candidate.Height
+    hash := candidate.Hash
+  
+  	if height < 0 {
+			continue
+		}
 
-			if height < 0 {
-				continue
-			}
+    blockByHash, errHeight := u.rpc.GetBlockByHash(hash)
+		blockByHeight, errHash := u.rpc.GetBlockByHeight(height)
+    
+		if errHeight != nil {
+			log.Printf("Error while retrieving block %v from node: %v", height, errHeight)
+			return nil, errHeight
+		}
+    if errHash != nil {
+      log.Printf("Error while retrieving block %v from node: %v", hash, errHash)
+      return nil, errHash
+    }
+		if blockByHeight == nil {
+			return nil, fmt.Errorf("Error while retrieving block %v from node, wrong node height", height)
+		}
+    if blockByHash == nil {
+      return nil, fmt.Errorf("Error while retrieving block %v from node, wrong node hash", hash)
+    }
 
-			block, err := u.rpc.GetBlockByHeight(height)
+    hashFound := matchCandidate(blockByHash, candidate)
+    heightFound := matchCandidate(blockByHeight, candidate)
+  
+		if hashFound && heightFound { // it is a reward block
+			orphan = false
+			result.blocks++
+
+  		err := u.handleBlock(blockByHeight, candidate)
 			if err != nil {
-				log.Printf("Error while retrieving block %v from node: %v", height, err)
+				u.halt = true
+				u.lastFail = err
 				return nil, err
 			}
-			if block == nil {
-				return nil, fmt.Errorf("Error while retrieving block %v from node, wrong node height", height)
-			}
 
-			if matchCandidate(block, candidate) {
-				orphan = false
-				result.blocks++
+			result.maturedBlocks = append(result.maturedBlocks, candidate)
+			log.Printf("Mature block %v with %v tx, hash: %v", candidate.Height, len(blockByHeight.TxsList), candidate.Hash[0:10])
+			break
+		} else if hashFound { // it is an uncle
+      orphan = false
+      result.uncles++
 
-				err = u.handleBlock(block, candidate)
-				if err != nil {
-					u.halt = true
-					u.lastFail = err
-					return nil, err
-				}
-				result.maturedBlocks = append(result.maturedBlocks, candidate)
-				log.Printf("Mature block %v with %v tx, hash: %v", candidate.Height, len(block.TxsList), candidate.Hash[0:10])
-				break
-			}
+      err := handleUncle(height, blockByHash, candidate)
+      if err != nil {
+        u.halt = true
+        u.lastFail = err
+        return nil, err
+      }
+      result.maturedBlocks = append(result.maturedBlocks, candidate)
+      log.Printf("Mature uncle %v/%v of reward %v with hash: %v", candidate.Height, candidate.UncleHeight,
+      util.FormatReward(candidate.Reward), blockByHash.Hash[0:10])
+    } 
 
-      /* uncles are very different beasts in BC
-			if len(block.Uncles) == 0 {
-				continue
-			}
-
-			// Trying to find uncle in current block during our forward check
-			for uncleIndex, uncleHash := range block.Uncles {
-				uncle, err := u.rpc.GetUncleByBlockNumberAndIndex(height, uncleIndex)
-				if err != nil {
-					return nil, fmt.Errorf("Error while retrieving uncle of block %v from node: %v", uncleHash, err)
-				}
-				if uncle == nil {
-					return nil, fmt.Errorf("Error while retrieving uncle of block %v from node", height)
-				}
-
-				// Found uncle
-				if matchCandidate(uncle, candidate) {
-					orphan = false
-					result.uncles++
-
-					err := handleUncle(height, uncle, candidate)
-					if err != nil {
-						u.halt = true
-						u.lastFail = err
-						return nil, err
-					}
-					result.maturedBlocks = append(result.maturedBlocks, candidate)
-					log.Printf("Mature uncle %v/%v of reward %v with hash: %v", candidate.Height, candidate.UncleHeight,
-						util.FormatReward(candidate.Reward), uncle.Hash[0:10])
-					break
-				}
-			}
-      */
-			// Found block or uncle
-			if !orphan {
-				break
-			}
-		}
 		// Block is lost, we didn't find any valid block or uncle matching our data in a blockchain
 		if orphan {
 			result.orphans++
@@ -188,7 +162,7 @@ func (u *BlockUnlocker) unlockCandidates(candidates []*storage.BlockData) (*Unlo
 			result.orphanedBlocks = append(result.orphanedBlocks, candidate)
 			log.Printf("Orphaned block %v:%v", candidate.RoundHeight, candidate.Nonce)
 		}
-	}
+  }
 	return result, nil
 }
 
@@ -505,13 +479,7 @@ func weiToShannonInt64(wei *big.Rat) int64 {
 }
 
 func getConstReward(height int64) *big.Int {
-	if height >= constantinopleHardForkHeight {
-		return new(big.Int).Set(constantinopleReward)
-	}
-	if height >= byzantiumHardForkHeight {
-		return new(big.Int).Set(byzantiumReward)
-	}
-	return new(big.Int).Set(homesteadReward)
+	return new(big.Int).Set(afterTargetReward)
 }
 
 func getRewardForUncle(height int64) *big.Int {
