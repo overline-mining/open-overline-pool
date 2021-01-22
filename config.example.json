@@ -66,16 +66,16 @@
 	"upstream": [
 		{
 			"name": "main",
-		        "url": "http://overline:3000/rpc",
-                        "urlMining": "http://overline:3001",
-                        "scookie": "correct-horse-battery-staple",
+      "url": "http://overline:3000/rpc",
+      "urlMining": "http://overline:3001",
+      "scookie": "correct-horse-battery-staple",
 			"timeout": "10s"
 		},
 		{
 			"name": "backup",
-		        "url": "http://overline2:3000/rpc",
-                        "urlMining": "http://overline2:3001",
-                        "scookie": "correct-horse-battery-staple",
+      "url": "http://overline2:3000/rpc",
+      "urlMining": "http://overline2:3001",
+      "scookie": "correct-horse-battery-staple",
 			"timeout": "10s"
 		}
 	],
@@ -99,7 +99,7 @@
 		"keepTxFees": false,
 		"interval": "10m",
 		"daemon": "http://overline:3000/rpc",
-    "scookie": "correct-horse-battery-staple",  
+    "scookie": "correct-horse-battery-staple",
 		"timeout": "10s"
 	},
 

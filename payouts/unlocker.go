@@ -25,7 +25,7 @@ type UnlockerConfig struct {
 	KeepTxFees     bool    `json:"keepTxFees"`
 	Interval       string  `json:"interval"`
 	Daemon         string  `json:"daemon"`
-  Scookie        string  `json:"scookie"`
+  SCookie        string  `json:"scookie"`
 	Timeout        string  `json:"timeout"`
 }
 
@@ -56,7 +56,7 @@ func NewBlockUnlocker(cfg *UnlockerConfig, backend *storage.RedisClient) *BlockU
 		log.Fatalf("Immature depth can't be < %v, your depth is %v", minDepth, cfg.ImmatureDepth)
 	}
 	u := &BlockUnlocker{config: cfg, backend: backend}
-	u.rpc = rpc.NewRPCClient("BlockUnlocker", cfg.Daemon, cfg.Scookie, cfg.Timeout)
+	u.rpc = rpc.NewRPCClient("BlockUnlocker", cfg.Daemon, cfg.SCookie, cfg.Timeout)
 	return u
 }
 

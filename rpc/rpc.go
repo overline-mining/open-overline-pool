@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	//"log"
+	"log"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 
 	"github.com/lgray/open-overline-pool/util"
@@ -97,7 +97,7 @@ type RPCClient struct {
 	sync.RWMutex
 	Url         string
 	Name        string
-        SCookie     string
+  SCookie     string
 	sick        bool
 	sickRate    int
 	successRate int
@@ -332,6 +332,12 @@ func (r *RPCClient) doPost(url string, method string, params interface{}) (*JSON
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
 
+  if r.Name == "BlockUnlocker" {
+    log.Println(r.Name)
+    log.Println(jsonReq)
+    log.Println(req)
+  }
+  
 	resp, err := r.client.Do(req)
 	if err != nil {
 		r.markSick()
