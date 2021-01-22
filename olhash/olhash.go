@@ -12,12 +12,12 @@ import (
 	//"github.com/ethereum/go-ethereum/common"
 )
 
-func blake2bl_from_bytes(data []byte) []byte {
+func Blake2blFromBytes(data []byte) []byte {
      hash := blake2b.Sum512(data)
      return hash[32:]
 }
 
-func calc_distance(work []byte, soln []byte) uint64 {
+func CalcDistance(work []byte, soln []byte) uint64 {
      acc := float64(0.0)
      num := float64(0.0)
      den := float64(0.0)
@@ -47,7 +47,7 @@ func eval(work []byte, miner_key []byte, merkle_root []byte,
      nonce_bytes := []byte(strconv.FormatUint(nonce, 10))
      timestamp_bytes := []byte(strconv.FormatInt(timestamp, 10))
 
-     nonce_hash_str := hex.EncodeToString(blake2bl_from_bytes(nonce_bytes))
+     nonce_hash_str := hex.EncodeToString(Blake2blFromBytes(nonce_bytes))
      nonce_hash := []byte(nonce_hash_str)
 
      //log.Println("work", string(work), len(work))
@@ -60,9 +60,9 @@ func eval(work []byte, miner_key []byte, merkle_root []byte,
 
      //log.Println("tohash string ->", string(tohash))
 
-     guess := []byte(hex.EncodeToString(blake2bl_from_bytes(tohash)))
+     guess := []byte(hex.EncodeToString(Blake2blFromBytes(tohash)))
 
-     return calc_distance(work, guess)
+     return CalcDistance(work, guess)
 }
 
 func Verify(Difficulty *big.Int, Work string, MinerKey string, MerkleRoot string, Nonce uint64, Timestamp int64) bool {

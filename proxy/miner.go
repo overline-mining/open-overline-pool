@@ -4,6 +4,7 @@ import (
 	"log"
 	"math/big"
 	"strconv"
+  //"encoding/hex"
 	//"strings"
 
 	//"github.com/ethereum/ethash"
@@ -58,8 +59,10 @@ func (s *ProxyServer) processShare(login, id, ip string, t *BlockTemplate, param
 
 
 	// prepare block submission
-	params_out := []string{workId, nonceDec, t.Difficulty.String(), params[1],
-      		               params[2], "0", "0"}
+  //bhash := []string{hex.EncodeToString(olhash.Blake2blFromBytes([]byte(t.LastBlockHash + t.MerkleRoot)))}
+  params_out := []string{workId, nonceDec, t.Difficulty.String(), params[1],
+                         params[2], "0","0"}
+  params_db := params_out//append(params_out, bhash...)
 
 	if olhash.Verify(block.difficulty, block.work, block.MinerKey,
 	                 block.MerkleRoot, block.nonce, block.WorkerTS) {
@@ -71,7 +74,8 @@ func (s *ProxyServer) processShare(login, id, ip string, t *BlockTemplate, param
 			return false, false
 		} else {
 			s.fetchBlockTemplate()
-			exist, err := s.backend.WriteBlock(login, id, params_out, shareDiff, t.Difficulty.Int64(), t.Height, s.hashrateExpiration)
+			exist, err := s.backend.WriteBlock(login, id, params_db, shareDiff,
+                                         t.Difficulty.Int64(), t.Height, s.hashrateExpiration)
 			if exist {
 				return true, false
 			}
@@ -83,7 +87,7 @@ func (s *ProxyServer) processShare(login, id, ip string, t *BlockTemplate, param
 			log.Printf("Block found by miner %v@%v at height %d", login, ip, t.Height)
 		}
 	} else {
-		exist, err := s.backend.WriteShare(login, id, params_out, shareDiff, t.Height, s.hashrateExpiration)
+		exist, err := s.backend.WriteShare(login, id, params_db, shareDiff, t.Height, s.hashrateExpiration)
 		if exist {
 			return true, false
 		}

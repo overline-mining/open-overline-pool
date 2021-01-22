@@ -35,6 +35,7 @@ type BlockTemplate struct {
 	MerkleRoot           string
 	WorkId               string
   Timestamp            uint64
+  LastBlockHash        string
 }
 
 type Block struct {
@@ -101,6 +102,7 @@ func (s *ProxyServer) fetchBlockTemplate() {
 		MerkleRoot:           reply[1],
 		WorkId:               reply[4],
     Timestamp:            thetimestamp,
+    LastBlockHash:        reply[7],
 	}
 	// Copy job backlog and add current one
 	newTemplate.headers[reply[0]] = heightDiffPair{
