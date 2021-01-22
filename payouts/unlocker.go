@@ -105,8 +105,8 @@ func (u *BlockUnlocker) unlockCandidates(candidates []*storage.BlockData) (*Unlo
 			continue
 		}
 
-    blockByHash, errHeight := u.rpc.GetBlockByHash(hash)
-		blockByHeight, errHash := u.rpc.GetBlockByHeight(height)
+    blockByHash, errHash := u.rpc.GetBlockByHash(hash)
+		blockByHeight, errHeight := u.rpc.GetBlockByHeight(height)
 
     log.Println("---- block by height ----")
     log.Println(blockByHeight)
@@ -172,6 +172,9 @@ func (u *BlockUnlocker) unlockCandidates(candidates []*storage.BlockData) (*Unlo
 }
 
 func matchCandidate(block *rpc.BcBlockReply, candidate *storage.BlockData) bool {
+  if block == nil {
+    return false
+  }
 	// Just compare hash if block is unlocked as immature
 	if len(candidate.Hash) > 0 && strings.EqualFold(candidate.Hash, block.Hash) {
 		return true
