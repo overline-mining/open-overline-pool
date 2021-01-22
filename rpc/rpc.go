@@ -16,6 +16,10 @@ import (
 	"github.com/lgray/open-overline-pool/util"
 )
 
+type BcRpcError struct {
+  Details string `json:"details"`
+}
+
 type BcTxOutPoint struct {
   Value string `json:"value"`
   Hash  string `json:"hash"`
@@ -354,7 +358,7 @@ func (r *RPCClient) doPost(url string, method string, params interface{}) (*JSON
 	if rpcResp.Error != nil {
     log.Println(rpcResp)
 		r.markSick()
-		return nil, errors.New(rpcResp.Error["message"].(string))
+		return nil, errors.New(rpcResp.Error["details"].(string))
 	}
 	return rpcResp, err
 }
