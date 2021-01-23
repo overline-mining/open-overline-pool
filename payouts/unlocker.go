@@ -457,7 +457,7 @@ func (u *BlockUnlocker) calculateRewards(block *storage.BlockData) (*big.Rat, *b
 		address := strings.ToLower(u.config.PoolFeeAddress)
 		rewards[address] += weiToShannonInt64(poolProfit)
 	}
-
+	logs.Println("resulting rewards: ", revenue, minersProfit, poolProfit, rewards)
 	return revenue, minersProfit, poolProfit, rewards, nil
 }
 
