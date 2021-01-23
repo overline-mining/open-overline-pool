@@ -12,6 +12,11 @@ spec:
   containers:
   - name: oovp-test-container
     image: lgray/open-overline-pool-api:latest
+    env:
+    - name: PRIVATE_KEY_SECRET
+      valueFrom:
+        secretKeyRef:
+          name: pool-miner-private-key
     volumeMounts:
     - name: config
       mountPath: "/config"

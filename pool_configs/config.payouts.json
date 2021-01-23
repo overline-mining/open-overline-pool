@@ -13,18 +13,18 @@
 	},
 
 	"payouts": {
-		"enabled": false,
+		"enabled": true,
 		"requirePeers":25,
-		"interval": "120m",
+		"interval": "60m",
 		"daemon": "http://overline:3000/rpc",
     "scookie": "correct-horse-battery-staple",  
 		"timeout": "10s",
 		"address": "0x700374fb1e438f8c2624ff49412714e94f619b3b",
-    "privateKey": "/path/to/secret",
+    "privateKey": "PRIVATE_KEY_SECRET",
 		"gas": "21000",
 		"gasPrice": "50000000000",
 		"autoGas": true,
-		"threshold": 500000000,
+		"threshold": 1000000000,
 		"bgsave": false
 	},
 

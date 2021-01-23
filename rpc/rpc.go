@@ -264,7 +264,9 @@ func (r *RPCClient) GetBalance(address string) (*big.Int, error) {
 	if err != nil {
 		return nil, err
 	}
-	return util.String2Big(reply.Confirmed), err
+  amountInNRG := util.String2Big(reply.Confirmed)
+  amountInWei := new(big.Int).Mul(amountInNRG, util.Ether)
+	return amountInWei, err
 }
 
 func (r *RPCClient) Sign(from string, s string) (string, error) {

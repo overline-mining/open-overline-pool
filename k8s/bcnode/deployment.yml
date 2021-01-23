@@ -27,9 +27,13 @@ spec:
           name: vol-bcnode-db
         env:
         - name: BC_MINER_KEY
-          value: "0x700374fb1e438f8c2624ff49412714e94f619b3b"
+          valueFrom:
+            secretKeyRef:
+              name: pool-miner-key
         - name: BC_SCOOKIE
-          value: "correct-horse-battery-staple"
+          valueFrom:
+            secretKeyRef:
+              name: pool-miner-scookie
         #- name: BC_MINER_BOOT
         #  value: "true"
         #- name: BC_LOG

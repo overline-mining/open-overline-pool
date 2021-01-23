@@ -229,8 +229,8 @@ func (r *RedisClient) WriteBlock(login, id string, params []string, diff, roundD
 		tx.HDel(r.formatKey("stats"), "roundShares")
 		tx.ZIncrBy(r.formatKey("finders"), 1, login)
 		tx.HIncrBy(r.formatKey("miners", login), "blocksFound", 1)
-		tx.Rename(r.formatKey("shares", "roundCurrent"), r.formatRound(int64(height), params[1]))
-		tx.HGetAllMap(r.formatRound(int64(height), params[1]))
+		tx.Rename(r.formatKey("shares", "roundCurrent"), r.formatRound(int64(height), params[7]))
+		tx.HGetAllMap(r.formatRound(int64(height), params[7]))
 		return nil
 	})
 	if err != nil {
@@ -315,9 +315,9 @@ func (r *RedisClient) GetImmatureBlocks(maxHeight int64) ([]*BlockData, error) {
 	return convertBlockResults(cmd), nil
 }
 
-func (r *RedisClient) GetRoundShares(height int64, nonce string) (map[string]int64, error) {
+func (r *RedisClient) GetRoundShares(height int64, hash string) (map[string]int64, error) {
 	result := make(map[string]int64)
-	cmd := r._followClient.HGetAllMap(r.formatRound(height, nonce))
+	cmd := r._followClient.HGetAllMap(r.formatRound(height, hash))
 	if cmd.Err() != nil {
 		return nil, cmd.Err()
 	}
@@ -570,14 +570,14 @@ func (r *RedisClient) WritePendingOrphans(blocks []*BlockData) error {
 func (r *RedisClient) writeImmatureBlock(tx *redis.Multi, block *BlockData) {
 	// Redis 2.8.x returns "ERR source and destination objects are the same"
 	if block.Height != block.RoundHeight {
-		tx.Rename(r.formatRound(block.RoundHeight, block.Nonce), r.formatRound(block.Height, block.Nonce))
+		tx.Rename(r.formatRound(block.RoundHeight, block.Hash), r.formatRound(block.Height, block.Hash))
 	}
 	tx.ZRem(r.formatKey("blocks", "candidates"), block.candidateKey)
 	tx.ZAdd(r.formatKey("blocks", "immature"), redis.Z{Score: float64(block.Height), Member: block.key()})
 }
 
 func (r *RedisClient) writeMaturedBlock(tx *redis.Multi, block *BlockData) {
-	tx.Del(r.formatRound(block.RoundHeight, block.Nonce))
+	tx.Del(r.formatRound(block.RoundHeight, block.Hash))
 	tx.ZRem(r.formatKey("blocks", "immature"), block.immatureKey)
 	tx.ZAdd(r.formatKey("blocks", "matured"), redis.Z{Score: float64(block.Height), Member: block.key()})
 }
@@ -840,14 +840,15 @@ func (r *RedisClient) CollectLuckStats(windows []int) (map[string]interface{}, e
 func convertCandidateResults(raw *redis.ZSliceCmd) []*BlockData {
 	var result []*BlockData
 	for _, v := range raw.Val() {
+    // workId:nonce:difficulty:distance:workerTS:iterations:timediff:timestamp:diff:totalShares
 		// "nonce:powHash:mixDigest:timestamp:diff:totalShares"
 		block := BlockData{}
 		block.Height = int64(v.Score)
 		block.RoundHeight = block.Height
 		fields := strings.Split(v.Member.(string), ":")
-		block.Nonce = fields[0]
-		block.PowHash = fields[1]
-		block.MixDigest = fields[2]
+		block.Nonce = fields[1]
+		block.PowHash = fields[2]
+		block.MixDigest = fields[3]
     block.Hash = fields[7]
 		block.Timestamp, _ = strconv.ParseInt(fields[8], 10, 64)
 		block.Difficulty, _ = strconv.ParseInt(fields[9], 10, 64)

@@ -100,7 +100,7 @@ func (u *BlockUnlocker) unlockCandidates(candidates []*storage.BlockData) (*Unlo
 
   	height := candidate.Height
     hash := candidate.Hash
-  
+    
   	if height < 0 {
 			continue
 		}
@@ -165,7 +165,7 @@ func (u *BlockUnlocker) unlockCandidates(candidates []*storage.BlockData) (*Unlo
 			result.orphans++
 			candidate.Orphan = true
 			result.orphanedBlocks = append(result.orphanedBlocks, candidate)
-			log.Printf("Orphaned block %v:%v", candidate.RoundHeight, candidate.Nonce)
+			log.Printf("Orphaned block %v:%v/%v", candidate.RoundHeight, candidate.Hash, candidate.Nonce)
 		}
   }
 	return result, nil
@@ -175,20 +175,12 @@ func matchCandidate(block *rpc.BcBlockReply, candidate *storage.BlockData) bool 
   if block == nil {
     return false
   }
-	// Just compare hash if block is unlocked as immature
-	if len(candidate.Hash) > 0 && strings.EqualFold(candidate.Hash, block.Hash) {
+	// Just compare hash and nonce if block is unlocked as immature
+	if ( len(candidate.Hash) > 0 && strings.EqualFold(candidate.Hash, block.Hash) &&
+       len(candidate.Nonce) > 0 && strings.EqualFold(candidate.Nonce, block.Nonce) ) {
 		return true
 	}
-	// Geth-style candidate matching
-	if len(block.Nonce) > 0 {
-		return strings.EqualFold(block.Nonce, candidate.Nonce)
-	}
-  /*
-	// Parity's EIP: https://github.com/ethereum/EIPs/issues/95
-	if len(block.SealFields) == 2 {
-		return strings.EqualFold(candidate.Nonce, block.SealFields[1])
-	}
-  */
+
 	return false
 }
 
@@ -217,6 +209,7 @@ func (u *BlockUnlocker) handleBlock(block *rpc.BcBlockReply, candidate *storage.
 
 	candidate.Orphan = false
 	candidate.Hash = block.Hash
+  candidate.Nonce = block.Nonce
 	candidate.Reward = reward
 	return nil
 }
@@ -245,7 +238,7 @@ func (u *BlockUnlocker) unlockPendingBlocks() {
 		log.Printf("Unable to get current blockchain height from node: %v", err)
 		return
 	}
-	currentHeight, err := strconv.ParseInt(strings.Replace(string(current.Number), "0x", "", -1), 16, 64)
+	currentHeight, err := strconv.ParseInt(string(current.Number), 10, 64)
 	if err != nil {
 		u.halt = true
 		u.lastFail = err
@@ -433,7 +426,7 @@ func (u *BlockUnlocker) calculateRewards(block *storage.BlockData) (*big.Rat, *b
 	revenue := new(big.Rat).SetInt(block.Reward)
 	minersProfit, poolProfit := chargeFee(revenue, u.config.PoolFee)
 
-	shares, err := u.backend.GetRoundShares(block.RoundHeight, block.Nonce)
+	shares, err := u.backend.GetRoundShares(block.RoundHeight, block.Hash)
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
@@ -457,7 +450,7 @@ func (u *BlockUnlocker) calculateRewards(block *storage.BlockData) (*big.Rat, *b
 		address := strings.ToLower(u.config.PoolFeeAddress)
 		rewards[address] += weiToShannonInt64(poolProfit)
 	}
-	logs.Println("resulting rewards: ", revenue, minersProfit, poolProfit, rewards)
+	log.Println("resulting rewards: ", revenue, minersProfit, poolProfit, rewards)
 	return revenue, minersProfit, poolProfit, rewards, nil
 }
 
