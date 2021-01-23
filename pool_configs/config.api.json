@@ -1,0 +1,32 @@
+{
+	"threads": 2,
+	"coin": "ol",
+	"name": "main",
+
+	"api": {
+		"enabled": true,
+		"purgeOnly": false,
+		"purgeInterval": "10m",
+		"listen": "0.0.0.0:6283",
+		"statsCollectInterval": "5s",
+		"hashrateWindow": "30m",
+		"hashrateLargeWindow": "3h",
+		"luckWindow": [64, 128, 256],
+		"payments": 30,
+		"blocks": 50
+	},
+
+	"redis": {
+		"leadEndpoint": "redis-leader:6379",
+    "followEndpoint": "redis-follower:6379",
+		"poolSize": 10,
+		"database": 0,
+		"password": "",
+    "diffToHashRate": 7.61961655e-9
+	},
+
+	"newrelicEnabled": false,
+	"newrelicName": "MyEtherProxy",
+	"newrelicKey": "SECRET_KEY",
+	"newrelicVerbose": false
+}

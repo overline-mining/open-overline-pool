@@ -1,14 +1,14 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: open-overline-pool-api
+  name: open-overline-pool-proxy
   labels:
     app: open-overline-pool
 spec:
   volumes:
   - name: config
     secret:
-      secretName: api-config-file
+      secretName: proxy-config-file
   containers:
   - name: oovp-test-container
     image: lgray/open-overline-pool-api:latest
@@ -16,7 +16,8 @@ spec:
     - name: config
       mountPath: "/config"
       readOnly: true
-    args: ['/config/config.api.json'] 
+    args: ['/config/config.proxy.json']
     ports:
-    - containerPort: 6283 # polling api
+    - containerPort: 3141 # stratum mining
+    - containerPort: 3142 # http mining
     imagePullPolicy: Always

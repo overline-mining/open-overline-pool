@@ -1,14 +1,14 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: open-overline-pool-api
+  name: open-overline-pool-payouts
   labels:
     app: open-overline-pool
 spec:
   volumes:
   - name: config
     secret:
-      secretName: api-config-file
+      secretName: payouts-config-file  
   containers:
   - name: oovp-test-container
     image: lgray/open-overline-pool-api:latest
@@ -16,7 +16,5 @@ spec:
     - name: config
       mountPath: "/config"
       readOnly: true
-    args: ['/config/config.api.json'] 
-    ports:
-    - containerPort: 6283 # polling api
+    args: ['/config/config.payouts.json']
     imagePullPolicy: Always

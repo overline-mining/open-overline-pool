@@ -1,0 +1,83 @@
+{
+	"threads": 2,
+	"coin": "ol",
+	"name": "main",
+
+	"proxy": {
+		"enabled": true,
+		"listen": "0.0.0.0:3142",
+		"limitHeadersSize": 1024,
+		"limitBodySize": 256,
+		"behindReverseProxy": false,
+		"blockRefreshInterval": "120ms",
+		"stateUpdateInterval": "3s",
+    "difficulty": 300000000000000,
+		"hashrateExpiration": "3h",
+
+		"healthCheck": true,
+		"maxFails": 100,
+
+		"stratum": {
+			"enabled": true,
+			"listen": "0.0.0.0:3141",
+			"timeout": "120s",
+			"maxConn": 8192,
+			"tls": false,
+			"certFile": "/path/to/cert.pem",
+			"keyFile": "/path/to/key.pem"
+		},
+
+		"policy": {
+			"workers": 8,
+			"resetInterval": "60m",
+			"refreshInterval": "1m",
+
+			"banning": {
+				"enabled": false,
+				"ipset": "blacklist",
+				"timeout": 1800,
+				"invalidPercent": 30,
+				"checkThreshold": 30,
+				"malformedLimit": 5
+			},
+			"limits": {
+				"enabled": false,
+				"limit": 30,
+				"grace": "5m",
+				"limitJump": 10
+			}
+		}
+	},
+
+	"upstreamCheckInterval": "5s",
+	"upstream": [
+		{
+			"name": "main",
+      "url": "http://overline:3000/rpc",
+      "urlMining": "http://overline:3001",
+      "scookie": "correct-horse-battery-staple",
+			"timeout": "10s"
+		},
+		{
+			"name": "backup",
+      "url": "http://overline2:3000/rpc",
+      "urlMining": "http://overline2:3001",
+      "scookie": "correct-horse-battery-staple",
+			"timeout": "10s"
+		}
+	],
+
+	"redis": {
+		"leadEndpoint": "redis-leader:6379",
+    "followEndpoint": "redis-follower:6379",
+		"poolSize": 10,
+		"database": 0,
+		"password": "",
+    "diffToHashRate": 7.61961655e-9
+	},
+
+	"newrelicEnabled": false,
+	"newrelicName": "MyEtherProxy",
+	"newrelicKey": "SECRET_KEY",
+	"newrelicVerbose": false
+}

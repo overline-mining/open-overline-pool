@@ -1,0 +1,35 @@
+{
+	"threads": 2,
+	"coin": "ol",
+	"name": "main",
+
+	"redis": {
+		"leadEndpoint": "redis-leader:6379",
+    "followEndpoint": "redis-follower:6379",
+		"poolSize": 10,
+		"database": 0,
+		"password": "",
+    "diffToHashRate": 7.61961655e-9
+	},
+
+	"payouts": {
+		"enabled": false,
+		"requirePeers":25,
+		"interval": "120m",
+		"daemon": "http://overline:3000/rpc",
+    "scookie": "correct-horse-battery-staple",  
+		"timeout": "10s",
+		"address": "0x700374fb1e438f8c2624ff49412714e94f619b3b",
+    "privateKey": "/path/to/secret",
+		"gas": "21000",
+		"gasPrice": "50000000000",
+		"autoGas": true,
+		"threshold": 500000000,
+		"bgsave": false
+	},
+
+	"newrelicEnabled": false,
+	"newrelicName": "MyEtherProxy",
+	"newrelicKey": "SECRET_KEY",
+	"newrelicVerbose": false
+}
