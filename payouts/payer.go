@@ -175,7 +175,7 @@ func (u *PayoutsProcessor) process() {
 		}
 
 		value := amountInWei.String()
-		txHash, err := u.rpc.SendTransaction(u.config.Address, login,  u.config.GasHex(), u.config.GasPriceHex(), value, u.config.AutoGas)
+		txHash, err := u.rpc.SendTransaction(u.config.Address, login,  value, os.Getenv(u.config.PrivKeyEnv))
 		if err != nil {
 			log.Printf("Failed to send payment to %s, %v Shannon: %v. Check outgoing tx for %s in block explorer and docs/PAYOUTS.md",
 				login, amount, err, login)

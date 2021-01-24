@@ -20,6 +20,12 @@ type BcRpcError struct {
   Details string `json:"details"`
 }
 
+type BcTransactionResponse struct {
+  Status uint64 `json:"status"`
+  TxHash string `json:"tx_hash"`
+  Error  string `json:"error"`
+}
+
 type BcTxOutPoint struct {
   Value string `json:"value"`
   Hash  string `json:"hash"`
@@ -299,33 +305,34 @@ func (r *RPCClient) GetPeerCount() (int64, error) {
 	return strconv.ParseInt(strings.Replace(reply, "0x", "", -1), 16, 64)
 }
 
-func (r *RPCClient) SendTransaction(from, to, gas, gasPrice, value string, autoGas bool) (string, error) {
+func (r *RPCClient) SendTransaction(from, to, valueInWei, pkey string) (string, error) {  
+  etherString := util.Ether.String()
+  valueInNRG, _ := new(big.Rat).SetString(valueInWei + "/" + etherString)
+  log.Println("constructed value in NRG -> ", valueInNRG.FloatString(18))
 	params := map[string]string{
-		"from":  from,
-		"to":    to,
-		"value": value,
+		"from_addr":  from,
+		"to_addr":    to,
+		"amount": valueInNRG.FloatString(18),
+    "tx_fee": "0",
+    "private_key_hex": pkey,
 	}
-	if !autoGas {
-		params["gas"] = gas
-		params["gasPrice"] = gasPrice
-	}
-	rpcResp, err := r.doPost(r.Url, "sendTx", []interface{}{params})
-	var reply string
+
+  rpcResp, err := r.doPost(r.Url, "sendTx", []interface{}{params})
+	var reply BcTransactionResponse
 	if err != nil {
-		return reply, err
+		return reply.Error, err
 	}
 	err = json.Unmarshal(*rpcResp.Result, &reply)
 	if err != nil {
-		return reply, err
+		return reply.Error, err
 	}
-	/* There is an inconsistence in a "standard". Geth returns error if it can't unlock signer account,
-	 * but Parity returns zero hash 0x000... if it can't send tx, so we must handle this case.
-	 * https://github.com/ethereum/wiki/wiki/JSON-RPC#returns-22
-	 */
-	if util.IsZeroHash(reply) {
+
+  log.Println("tx reply -> ", reply)
+  
+	if util.IsZeroHash(reply.TxHash) {
 		err = errors.New("transaction is not yet available")
 	}
-	return reply, err
+	return reply.TxHash, err
 }
 
 func (r *RPCClient) doPost(url string, method string, params interface{}) (*JSONRpcResp, error) {
