@@ -484,16 +484,16 @@ func getConstReward(height int64) *big.Int {
 }
 
 func getRewardForUncle(height int64) *big.Int {
-	reward := getConstReward(height)
-	return new(big.Int).Div(reward, new(big.Int).SetInt64(32))
+	//reward := getConstReward(height)
+	return new(big.Int).SetInt64(0) //new(big.Int).Div(reward, new(big.Int).SetInt64(32))
 }
 
 func getUncleReward(uHeight, height int64) *big.Int {
-	reward := getConstReward(height)
-	k := height - uHeight
-	reward.Mul(big.NewInt(8-k), reward)
-	reward.Div(reward, big.NewInt(8))
-	return reward
+	//reward := getConstReward(height)
+	//k := height - uHeight
+	//reward.Mul(big.NewInt(8-k), reward)
+	//reward.Div(reward, big.NewInt(8))
+	return new(big.Int).SetInt64(0) //reward
 }
 
 func (u *BlockUnlocker) getExtraRewardForTx(block *rpc.BcBlockReply) (*big.Int, error) {

@@ -22,7 +22,7 @@ type BcRpcError struct {
 
 type BcTransactionResponse struct {
   Status uint64 `json:"status"`
-  TxHash string `json:"tx_hash"`
+  TxHash string `json:"txHash"`
   Error  string `json:"error"`
 }
 
@@ -141,6 +141,7 @@ const receiptStatusSuccessful = "0x1"
 type TxReceipt struct {
 	TxHash    string `json:"hash"`
 	GasUsed   string `json:"overline"`
+  Nonce     string `json:"nonce"`
 	BlockHash string 
 	Status    string `json:"nonce"`
 }
@@ -151,10 +152,7 @@ func (r *TxReceipt) Confirmed() bool {
 
 // Use with previous method
 func (r *TxReceipt) Successful() bool {
-	if len(r.Status) > 0 {
-		return r.Status == receiptStatusSuccessful
-	}
-	return true
+	return len(r.TxHash) > 0
 }
 
 type Tx struct {
@@ -231,14 +229,18 @@ func (r *RPCClient) getBlockBy(method string, params []string) (*BcBlockReply, e
 }
 
 func (r *RPCClient) GetTxReceipt(hash string) (*TxReceipt, error) {
-	rpcResp, err := r.doPost(r.Url, "getTx", []string{hash})
-	if err != nil {
+	rpcResp, err := r.doPost(r.Url, "getBlockByTx", []string{hash})
+  if err != nil {
 		return nil, err
 	}
 	if rpcResp.Result != nil {
-		var reply *TxReceipt
+		var reply *BcBlockReply
 		err = json.Unmarshal(*rpcResp.Result, &reply)
-		return reply, err
+    out := new(TxReceipt)
+    out.BlockHash = reply.Hash
+    out.TxHash = hash
+    log.Println("got rpc back from bcnode", out.BlockHash, out.TxHash, err)
+		return out, err
 	}
 	return nil, nil
 }
@@ -309,15 +311,9 @@ func (r *RPCClient) SendTransaction(from, to, valueInWei, pkey string) (string, 
   etherString := util.Ether.String()
   valueInNRG, _ := new(big.Rat).SetString(valueInWei + "/" + etherString)
   log.Println("constructed value in NRG -> ", valueInNRG.FloatString(18))
-	params := map[string]string{
-		"from_addr":  from,
-		"to_addr":    to,
-		"amount": valueInNRG.FloatString(18),
-    "tx_fee": "0",
-    "private_key_hex": pkey,
-	}
+	params := []string{from, to, valueInNRG.FloatString(18), "0", pkey}
 
-  rpcResp, err := r.doPost(r.Url, "sendTx", []interface{}{params})
+  rpcResp, err := r.doPost(r.Url, "newTx", params)
 	var reply BcTransactionResponse
 	if err != nil {
 		return reply.Error, err
@@ -327,7 +323,7 @@ func (r *RPCClient) SendTransaction(from, to, valueInWei, pkey string) (string, 
 		return reply.Error, err
 	}
 
-  log.Println("tx reply -> ", reply)
+  log.Println("tx reply -> ", reply.TxHash)
   
 	if util.IsZeroHash(reply.TxHash) {
 		err = errors.New("transaction is not yet available")
@@ -335,7 +331,7 @@ func (r *RPCClient) SendTransaction(from, to, valueInWei, pkey string) (string, 
 	return reply.TxHash, err
 }
 
-func (r *RPCClient) doPost(url string, method string, params interface{}) (*JSONRpcResp, error) {
+func (r *RPCClient) doPost(url string, method string, params []string) (*JSONRpcResp, error) {
 	jsonReq := map[string]interface{}{"jsonrpc": "2.0", "method": method, "params": params, "id": 0}
 	data, _ := json.Marshal(jsonReq)
 
