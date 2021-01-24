@@ -30,10 +30,12 @@ spec:
           valueFrom:
             secretKeyRef:
               name: pool-miner-key
+              key: value
         - name: BC_SCOOKIE
           valueFrom:
             secretKeyRef:
               name: pool-miner-scookie
+              key: value
         #- name: BC_MINER_BOOT
         #  value: "true"
         #- name: BC_LOG

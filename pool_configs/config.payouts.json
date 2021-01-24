@@ -15,7 +15,7 @@
 	"payouts": {
 		"enabled": true,
 		"requirePeers":25,
-		"interval": "60m",
+		"interval": "10m",
 		"daemon": "http://overline:3000/rpc",
     "scookie": "correct-horse-battery-staple",  
 		"timeout": "10s",
