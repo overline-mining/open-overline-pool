@@ -311,7 +311,7 @@ func (r *RPCClient) SendTransaction(from, to, valueInWei, pkey string) (string, 
   log.Println("constructed value in NRG -> ", valueInNRG.FloatString(18))
 	params := []string{from, to, valueInNRG.FloatString(18), "0", pkey}
 
-  rpcResp, err := r.doPost(r.Url, "sendTx", params)
+  rpcResp, err := r.doPost(r.Url, "newTx", params)
 	var reply BcTransactionResponse
 	if err != nil {
 		return reply.Error, err
