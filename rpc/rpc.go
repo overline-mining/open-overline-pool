@@ -309,15 +309,9 @@ func (r *RPCClient) SendTransaction(from, to, valueInWei, pkey string) (string, 
   etherString := util.Ether.String()
   valueInNRG, _ := new(big.Rat).SetString(valueInWei + "/" + etherString)
   log.Println("constructed value in NRG -> ", valueInNRG.FloatString(18))
-	params := map[string]string{
-		"from_addr":  from,
-		"to_addr":    to,
-		"amount": valueInNRG.FloatString(18),
-    "tx_fee": "0",
-    "private_key_hex": pkey,
-	}
+	params := []string{from, to, valueInNRG.FloatString(18), "0", pkey}
 
-  rpcResp, err := r.doPost(r.Url, "sendTx", []interface{}{params})
+  rpcResp, err := r.doPost(r.Url, "sendTx", params)
 	var reply BcTransactionResponse
 	if err != nil {
 		return reply.Error, err
