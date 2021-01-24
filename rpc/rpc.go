@@ -22,7 +22,7 @@ type BcRpcError struct {
 
 type BcTransactionResponse struct {
   Status uint64 `json:"status"`
-  TxHash string `json:"tx_hash"`
+  TxHash string `json:"txHash"`
   Error  string `json:"error"`
 }
 
@@ -141,20 +141,18 @@ const receiptStatusSuccessful = "0x1"
 type TxReceipt struct {
 	TxHash    string `json:"hash"`
 	GasUsed   string `json:"overline"`
+  Nonce     string `json:"nonce"`
 	BlockHash string 
 	Status    string `json:"nonce"`
 }
 
 func (r *TxReceipt) Confirmed() bool {
-	return len(r.BlockHash) > 0
+	return len(r.Nonce) > 0
 }
 
 // Use with previous method
 func (r *TxReceipt) Successful() bool {
-	if len(r.Status) > 0 {
-		return r.Status == receiptStatusSuccessful
-	}
-	return true
+	return len(r.TxHash) > 0
 }
 
 type Tx struct {
@@ -321,7 +319,7 @@ func (r *RPCClient) SendTransaction(from, to, valueInWei, pkey string) (string, 
 		return reply.Error, err
 	}
 
-  log.Println("tx reply -> ", reply)
+  log.Println("tx reply -> ", reply.TxHash)
   
 	if util.IsZeroHash(reply.TxHash) {
 		err = errors.New("transaction is not yet available")
