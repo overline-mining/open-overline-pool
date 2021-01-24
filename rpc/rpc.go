@@ -236,7 +236,7 @@ func (r *RPCClient) GetTxReceipt(hash string) (*TxReceipt, error) {
 	if rpcResp.Result != nil {
 		var reply *TxReceipt
 		err = json.Unmarshal(*rpcResp.Result, &reply)
-    log.Println("got rpc back from bcnode", reply.Nonce, reply.Hash, err)
+    log.Println("got rpc back from bcnode", reply.Nonce, reply.TxHash, err)
 		return reply, err
 	}
 	return nil, nil
