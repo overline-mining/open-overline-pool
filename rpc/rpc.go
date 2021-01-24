@@ -230,13 +230,13 @@ func (r *RPCClient) getBlockBy(method string, params []string) (*BcBlockReply, e
 
 func (r *RPCClient) GetTxReceipt(hash string) (*TxReceipt, error) {
 	rpcResp, err := r.doPost(r.Url, "getTx", []string{hash})
-  log.Println("got rpc back from bcnode", rpcResp, err)
-	if err != nil {
+  if err != nil {
 		return nil, err
 	}
 	if rpcResp.Result != nil {
 		var reply *TxReceipt
 		err = json.Unmarshal(*rpcResp.Result, &reply)
+    log.Println("got rpc back from bcnode", reply.Nonce, reply.Hash, err)
 		return reply, err
 	}
 	return nil, nil
