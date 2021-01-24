@@ -230,6 +230,7 @@ func (r *RPCClient) getBlockBy(method string, params []string) (*BcBlockReply, e
 
 func (r *RPCClient) GetTxReceipt(hash string) (*TxReceipt, error) {
 	rpcResp, err := r.doPost(r.Url, "getTx", []string{hash})
+  log.Println("got rpc back from bcnode", rpcResp, err)
 	if err != nil {
 		return nil, err
 	}
@@ -327,7 +328,7 @@ func (r *RPCClient) SendTransaction(from, to, valueInWei, pkey string) (string, 
 	return reply.TxHash, err
 }
 
-func (r *RPCClient) doPost(url string, method string, params interface{}) (*JSONRpcResp, error) {
+func (r *RPCClient) doPost(url string, method string, params []string) (*JSONRpcResp, error) {
 	jsonReq := map[string]interface{}{"jsonrpc": "2.0", "method": method, "params": params, "id": 0}
 	data, _ := json.Marshal(jsonReq)
 
