@@ -147,7 +147,7 @@ type TxReceipt struct {
 }
 
 func (r *TxReceipt) Confirmed() bool {
-	return len(r.Nonce) > 0
+	return len(r.BlockHash) > 0
 }
 
 // Use with previous method
@@ -229,15 +229,18 @@ func (r *RPCClient) getBlockBy(method string, params []string) (*BcBlockReply, e
 }
 
 func (r *RPCClient) GetTxReceipt(hash string) (*TxReceipt, error) {
-	rpcResp, err := r.doPost(r.Url, "getTx", []string{hash})
+	rpcResp, err := r.doPost(r.Url, "getBlockByTx", []string{hash})
   if err != nil {
 		return nil, err
 	}
 	if rpcResp.Result != nil {
-		var reply *TxReceipt
+		var reply *BcBlockReply
 		err = json.Unmarshal(*rpcResp.Result, &reply)
-    log.Println("got rpc back from bcnode", reply.Nonce, reply.TxHash, err)
-		return reply, err
+    out := new(TxReceipt)
+    out.BlockHash = reply.Hash
+    out.TxHash = hash
+    log.Println("got rpc back from bcnode", out.BlockHash, out.TxHash, err)
+		return out, err
 	}
 	return nil, nil
 }
