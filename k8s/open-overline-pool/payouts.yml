@@ -15,11 +15,21 @@ spec:
     env:
     #- name: RESOLVE_PAYOUT
     #  value: "1"
-    - name: PRIVATE_KEY_SECRET
+    - name: POOL_MINER_KEY
+      valueFrom:
+        secretKeyRef:
+          name: pool-miner-key
+          key: value 
+    - name: POOL_MINER_PRIVATE_KEY
       valueFrom:
         secretKeyRef:
           name: pool-miner-private-key
           key: value
+    - name: POOL_NODE_SCOOKIE
+      valueFrom:
+        secretKeyRef:
+          name: pool-miner-scookie
+          value: value
     volumeMounts:
     - name: config
       mountPath: "/config"

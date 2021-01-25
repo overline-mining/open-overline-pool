@@ -11,7 +11,7 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
-
+  "os"
 	"github.com/gorilla/mux"
 
 	"github.com/lgray/open-overline-pool/policy"
@@ -60,9 +60,10 @@ func NewProxy(cfg *Config, backend *storage.RedisClient) *ProxyServer {
 	proxy.upstreams = make([]*rpc.RPCClient, len(cfg.Upstream))
 	proxy.mining_upstreams = make([]*rpc.RPCClient, len(cfg.Upstream))
 	for i, v := range cfg.Upstream {
-		proxy.upstreams[i] = rpc.NewRPCClient(v.Name, v.Url, v.SCookie, v.Timeout)
+    SCookie := os.Getenv(v.SCookie)
+		proxy.upstreams[i] = rpc.NewRPCClient(v.Name, v.Url, SCookie, v.Timeout)
 		proxy.mining_upstreams[i] = rpc.NewRPCClient(v.Name, v.UrlMining, "", v.Timeout)
-		log.Printf("Upstream: %s => %s (%s)", v.Name, v.Url, v.SCookie)
+		log.Printf("Upstream: %s => %s (%s)", v.Name, v.Url, SCookie)
 	}
 	log.Printf("Default upstream: %s => %s", proxy.rpc().Name, proxy.rpc().Url)
 	log.Printf("Default mining upstream: %s => %s", proxy.miningRpc().Name, proxy.miningRpc().Url)

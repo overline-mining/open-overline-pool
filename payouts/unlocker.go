@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+  "os"
 
 	"github.com/ethereum/go-ethereum/common/math"
 
@@ -46,8 +47,9 @@ type BlockUnlocker struct {
 }
 
 func NewBlockUnlocker(cfg *UnlockerConfig, backend *storage.RedisClient) *BlockUnlocker {
-	if len(cfg.PoolFeeAddress) != 0 && !util.IsValidHexAddress(cfg.PoolFeeAddress) {
-		log.Fatalln("Invalid poolFeeAddress", cfg.PoolFeeAddress)
+  poolFeeAddress := os.Getenv(cfg.PoolFeeAddress)
+	if len(poolFeeAddress) != 0 && !util.IsValidHexAddress(poolFeeAddress) {
+		log.Fatalln("Invalid poolFeeAddress", poolFeeAddress)
 	}
 	if cfg.Depth < minDepth*2 {
 		log.Fatalf("Block maturity depth can't be < %v, your depth is %v", minDepth*2, cfg.Depth)
@@ -56,7 +58,8 @@ func NewBlockUnlocker(cfg *UnlockerConfig, backend *storage.RedisClient) *BlockU
 		log.Fatalf("Immature depth can't be < %v, your depth is %v", minDepth, cfg.ImmatureDepth)
 	}
 	u := &BlockUnlocker{config: cfg, backend: backend}
-	u.rpc = rpc.NewRPCClient("BlockUnlocker", cfg.Daemon, cfg.SCookie, cfg.Timeout)
+  SCookie := os.Getenv(cfg.SCookie)
+	u.rpc = rpc.NewRPCClient("BlockUnlocker", cfg.Daemon, SCookie, cfg.Timeout)
 	return u
 }
 
@@ -108,17 +111,17 @@ func (u *BlockUnlocker) unlockCandidates(candidates []*storage.BlockData) (*Unlo
     blockByHash, errHash := u.rpc.GetBlockByHash(hash)
 		blockByHeight, errHeight := u.rpc.GetBlockByHeight(height)
 
-    log.Println("---- block by height ----")
-    log.Println(blockByHeight)
-    log.Println("---- block by hash ----")
-    log.Println(blockByHash)
+    //log.Println("---- block by height ----")
+    //log.Println(blockByHeight)
+    //log.Println("---- block by hash ----")
+    //log.Println(blockByHash)
   
 		if errHeight != nil {
 			log.Printf("Error while retrieving block %v from node: %v", height, errHeight)
 			return nil, errHeight
 		}
     if errHash != nil {
-      log.Printf("Error while retrieving block %v from node: %v (probably an uncle)", hash, errHash)
+      log.Printf("Error while retrieving block %v from node: %v ", hash, errHash)
       //return nil, errHash
     }
 		if blockByHeight == nil {
@@ -131,7 +134,7 @@ func (u *BlockUnlocker) unlockCandidates(candidates []*storage.BlockData) (*Unlo
     hashFound := matchCandidate(blockByHash, candidate)
     heightFound := matchCandidate(blockByHeight, candidate)
   
-		if hashFound && heightFound { // it is a reward block
+		if heightFound && hashFound { // it is a reward block
 			orphan = false
 			result.blocks++
 
@@ -143,7 +146,8 @@ func (u *BlockUnlocker) unlockCandidates(candidates []*storage.BlockData) (*Unlo
 			}
 
 			result.maturedBlocks = append(result.maturedBlocks, candidate)
-			log.Printf("Mature block %v with %v tx, hash: %v", candidate.Height, len(blockByHeight.TxsList), candidate.Hash[0:10])
+			log.Printf("Mature block %v with %v tx, hash: %v", candidate.Height, len(blockByHeight.TxsList), candidate.Hash[0:10], util.FormatReward(candidate.Reward))
+      log.Println("Mature block key: ", candidate.RedisKey())
 			break
 		} else if hashFound { // it is an uncle
       orphan = false
@@ -156,8 +160,8 @@ func (u *BlockUnlocker) unlockCandidates(candidates []*storage.BlockData) (*Unlo
         return nil, err
       }
       result.maturedBlocks = append(result.maturedBlocks, candidate)
-      log.Printf("Mature uncle %v/%v of reward %v with hash: %v", candidate.Height, candidate.UncleHeight,
-      util.FormatReward(candidate.Reward), blockByHash.Hash[0:10])
+      log.Printf("Mature uncle %v/%v of reward %v with hash: %v", candidate.Height, candidate.UncleHeight, util.FormatReward(candidate.Reward), blockByHash.Hash[0:10])
+      log.Println("Mature uncle key: ", candidate.RedisKey())
     } 
 
 		// Block is lost, we didn't find any valid block or uncle matching our data in a blockchain
@@ -166,6 +170,7 @@ func (u *BlockUnlocker) unlockCandidates(candidates []*storage.BlockData) (*Unlo
 			candidate.Orphan = true
 			result.orphanedBlocks = append(result.orphanedBlocks, candidate)
 			log.Printf("Orphaned block %v:%v/%v", candidate.RoundHeight, candidate.Hash, candidate.Nonce)
+      log.Println("Orphans block key: ", candidate.RedisKey())
 		}
   }
 	return result, nil
@@ -446,8 +451,9 @@ func (u *BlockUnlocker) calculateRewards(block *storage.BlockData) (*big.Rat, *b
 		rewards[login] += weiToShannonInt64(donation)
 	}
 
-	if len(u.config.PoolFeeAddress) != 0 {
-		address := strings.ToLower(u.config.PoolFeeAddress)
+  poolFeeAddress := os.Getenv(u.config.PoolFeeAddress)
+	if len(poolFeeAddress) != 0 {
+		address := strings.ToLower(poolFeeAddress)
 		rewards[address] += weiToShannonInt64(poolProfit)
 	}
 	log.Println("resulting rewards: ", revenue, minersProfit, poolProfit, rewards)
@@ -489,11 +495,11 @@ func getRewardForUncle(height int64) *big.Int {
 }
 
 func getUncleReward(uHeight, height int64) *big.Int {
-	//reward := getConstReward(height)
+	reward := getConstReward(height)
 	//k := height - uHeight
 	//reward.Mul(big.NewInt(8-k), reward)
 	//reward.Div(reward, big.NewInt(8))
-	return new(big.Int).SetInt64(0) //reward
+	return reward
 }
 
 func (u *BlockUnlocker) getExtraRewardForTx(block *rpc.BcBlockReply) (*big.Int, error) {

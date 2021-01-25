@@ -15,14 +15,14 @@
 	"unlocker": {
 		"enabled": true,
 		"poolFee": 1.0,
-		"poolFeeAddress": "0xbfcf55b8fcb3d1937a1c6d02ff6d17089651882c",
+    "poolFeeAddress": "POOL_FEE_KEY",
 		"donate": true,
 		"depth": 100,
 		"immatureDepth": 30,
 		"keepTxFees": false,
 		"interval": "1m",
 		"daemon": "http://overline:3000/rpc",
-                "scookie": "correct-horse-battery-staple",
+    "scookie": "correct-horse-battery-staple",
 		"timeout": "10s"
 	},
 

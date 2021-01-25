@@ -58,7 +58,7 @@ func (b *BlockData) serializeHash() string {
 	if len(b.Hash) > 0 {
 		return b.Hash
 	} else {
-		return "0x0"
+		return "0"
 	}
 }
 
@@ -66,6 +66,10 @@ func (b *BlockData) RoundKey() string {
 	return join(b.RoundHeight, b.Hash)
 }
 
+func (b *BlockData) RedisKey() string {
+  return b.key()
+}
+  
 func (b *BlockData) key() string {
 	return join(b.UncleHeight, b.Orphan, b.Nonce, b.serializeHash(), b.Timestamp, b.Difficulty, b.TotalShares, b.Reward)
 }
@@ -864,6 +868,7 @@ func convertBlockResults(rows ...*redis.ZSliceCmd) []*BlockData {
 	for _, row := range rows {
 		for _, v := range row.Val() {
 			// "uncleHeight:orphan:nonce:blockHash:timestamp:diff:totalShares:rewardInWei"
+      
 			block := BlockData{}
 			block.Height = int64(v.Score)
 			block.RoundHeight = block.Height

@@ -55,14 +55,14 @@
 			"name": "main",
       "url": "http://overline:3000/rpc",
       "urlMining": "http://overline:3001",
-      "scookie": "correct-horse-battery-staple",
+      "scookie": "POOL_NODE_SCOOKIE",
 			"timeout": "10s"
 		},
 		{
 			"name": "backup",
       "url": "http://overline2:3000/rpc",
       "urlMining": "http://overline2:3001",
-      "scookie": "correct-horse-battery-staple",
+      "scookie": "POOL_NODE_SCOOKIE",
 			"timeout": "10s"
 		}
 	],

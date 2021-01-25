@@ -12,6 +12,17 @@ spec:
   containers:
   - name: oovp-test-container
     image: lgray/open-overline-pool-api:latest
+    env:
+    - name: POOL_FEE_KEY
+      valueFrom:
+        secretKeyRef:
+          name: pool-fee-key
+          key: value
+    - name: POOL_NODE_SCOOKIE
+      valueFrom:
+        secretKeyRef:
+          name: pool-miner-scookie
+          value: value
     volumeMounts:
     - name: config
       mountPath: "/config"

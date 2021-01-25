@@ -54,7 +54,8 @@ type PayoutsProcessor struct {
 
 func NewPayoutsProcessor(cfg *PayoutsConfig, backend *storage.RedisClient) *PayoutsProcessor {
 	u := &PayoutsProcessor{config: cfg, backend: backend}
-	u.rpc = rpc.NewRPCClient("PayoutsProcessor", cfg.Daemon, cfg.SCookie, cfg.Timeout)
+  SCookie := os.Getenv(cfg.SCookie)
+	u.rpc = rpc.NewRPCClient("PayoutsProcessor", cfg.Daemon, SCookie, cfg.Timeout)
 	return u
 }
 
@@ -140,7 +141,8 @@ func (u *PayoutsProcessor) process() {
 		}
 
 		// Check if we have enough funds
-		poolBalance, err := u.rpc.GetBalance(u.config.Address)
+    poolAddress := os.Getenv(u.config.Address)
+		poolBalance, err := u.rpc.GetBalance(poolAddress)
     log.Println("got pool balance -> ", poolBalance)
 		if err != nil {
 			u.halt = true
@@ -175,7 +177,7 @@ func (u *PayoutsProcessor) process() {
 		}
 
 		value := amountInWei.String()
-		txHash, err := u.rpc.SendTransaction(u.config.Address, login,  value, os.Getenv(u.config.PrivKeyEnv))
+		txHash, err := u.rpc.SendTransaction(poolAddress, login,  value, os.Getenv(u.config.PrivKeyEnv))
 		if err != nil {
 			log.Printf("Failed to send payment to %s, %v Shannon: %v. Check outgoing tx for %s in block explorer and docs/PAYOUTS.md",
 				login, amount, err, login)
