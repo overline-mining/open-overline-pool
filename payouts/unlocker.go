@@ -108,8 +108,10 @@ func (u *BlockUnlocker) unlockCandidates(candidates []*storage.BlockData) (*Unlo
 			continue
 		}
 
+    nextHeight := height + 1
+  
     blockByHash, errHash := u.rpc.GetBlockByHash(hash)
-		blockByHeight, errHeight := u.rpc.GetBlockByHeight(height)
+		nextBlockByHeight, errHeight := u.rpc.GetBlockByHeight(nextHeight)
 
     //log.Println("---- block by height ----")
     //log.Println(blockByHeight)
@@ -124,7 +126,7 @@ func (u *BlockUnlocker) unlockCandidates(candidates []*storage.BlockData) (*Unlo
       log.Printf("Error while retrieving block %v from node: %v ", hash, errHash)
       //return nil, errHash
     }
-		if blockByHeight == nil {
+		if nextBlockByHeight == nil {
 			return nil, fmt.Errorf("Error while retrieving block %v from node, wrong node height", height)
 		}
     if blockByHash == nil {
@@ -132,13 +134,13 @@ func (u *BlockUnlocker) unlockCandidates(candidates []*storage.BlockData) (*Unlo
     }
 
     hashFound := matchCandidate(blockByHash, candidate)
-    heightFound := matchCandidate(blockByHeight, candidate)
+    foundAsPreviousHash := matchCandidateByPreviousHash(nextBlockByHeight, candidate)
   
-		if heightFound && hashFound { // it is a reward block
+		if foundAsPreviousHash && hashFound { // it is a reward block
 			orphan = false
 			result.blocks++
 
-  		err := u.handleBlock(blockByHeight, candidate)
+  		err := u.handleBlock(blockByHash, candidate)
 			if err != nil {
 				u.halt = true
 				u.lastFail = err
@@ -146,7 +148,7 @@ func (u *BlockUnlocker) unlockCandidates(candidates []*storage.BlockData) (*Unlo
 			}
 
 			result.maturedBlocks = append(result.maturedBlocks, candidate)
-			log.Printf("Mature block %v with %v tx, hash: %v", candidate.Height, len(blockByHeight.TxsList), candidate.Hash[0:10], util.FormatReward(candidate.Reward))
+			log.Printf("Mature block %v with %v tx, hash: %v", candidate.Height, len(blockByHash.TxsList), candidate.Hash[0:10], util.FormatReward(candidate.Reward))
       log.Println("Mature block key: ", candidate.RedisKey())
 			break
 		} else if hashFound { // it is an uncle
@@ -174,6 +176,17 @@ func (u *BlockUnlocker) unlockCandidates(candidates []*storage.BlockData) (*Unlo
 		}
   }
 	return result, nil
+}
+
+func matchCandidateByPreviousHash(nextBlock *rpc.BcBlockReply, candidate *storage.BlockData) bool {
+  if nextBlock == nil {
+    return false
+  }
+  // Just compare hash to previous hash of next block if block is unlocked as immature
+  if ( len(candidate.Hash) > 0 && strings.EqualFold(candidate.Hash, nextBlock.PreviousHash) ) {
+    return true
+  }
+   return false
 }
 
 func matchCandidate(block *rpc.BcBlockReply, candidate *storage.BlockData) bool {
@@ -495,11 +508,11 @@ func getRewardForUncle(height int64) *big.Int {
 }
 
 func getUncleReward(uHeight, height int64) *big.Int {
-	reward := getConstReward(height)
+	//reward := getConstReward(height)
 	//k := height - uHeight
 	//reward.Mul(big.NewInt(8-k), reward)
 	//reward.Div(reward, big.NewInt(8))
-	return reward
+	return new(big.Int).SetInt64(0) //reward
 }
 
 func (u *BlockUnlocker) getExtraRewardForTx(block *rpc.BcBlockReply) (*big.Int, error) {

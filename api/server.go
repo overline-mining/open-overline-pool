@@ -219,6 +219,10 @@ func (s *ApiServer) BlocksIndex(w http.ResponseWriter, r *http.Request) {
 		reply["luck"] = stats["luck"]
 	}
 
+  log.Println("----- raw reply for BlocksIndex -----")
+  log.Println(reply)
+  log.Println("----- end reply for BlocksIndex -----")
+  
 	err := json.NewEncoder(w).Encode(reply)
 	if err != nil {
 		log.Println("Error serializing API response: ", err)
