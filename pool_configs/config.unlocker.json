@@ -22,7 +22,7 @@
 		"keepTxFees": false,
 		"interval": "1m",
 		"daemon": "http://overline:3000/rpc",
-    "scookie": "correct-horse-battery-staple",
+    "scookie": "POOL_NODE_SCOOKIE",
 		"timeout": "10s"
 	},
 

@@ -17,7 +17,7 @@ spec:
       valueFrom:
         secretKeyRef:
           name: pool-miner-scookie
-          value: value
+          key: value
     volumeMounts:
     - name: config
       mountPath: "/config"
