@@ -31,11 +31,11 @@ type RedisClient struct {
 type BlockData struct {
 	Height         int64    `json:"height"`
 	Timestamp      int64    `json:"timestamp"`
-	Difficulty     int64   `json:"difficulty"`
+	Difficulty     int64    `json:"difficulty"`
 	TotalShares    int64    `json:"shares"`
-	Uncle          bool     `json:"-"`
+	Uncle          bool     `json:"uncle"`
 	UncleHeight    int64    `json:"-"`
-	Orphan         bool     `json:"-"`
+	Orphan         bool     `json:"orphan"`
 	Hash           string   `json:"hash"`
 	Nonce          string   `json:"nonce"`
 	PowHash        string   `json:"-"`
@@ -43,7 +43,7 @@ type BlockData struct {
 	Reward         *big.Int `json:"-"`
 	ExtraReward    *big.Int `json:"-"`
 	ImmatureReward string   `json:"-"`
-	RewardString   string   `json:"-"`
+	RewardString   string   `json:"reward"`
 	RoundHeight    int64    `json:"-"`
 	candidateKey   string
 	immatureKey    string
