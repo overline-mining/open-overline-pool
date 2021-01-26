@@ -15,12 +15,15 @@ var Block = EmberObject.extend({
   }),
 
   isOk: computed('orphan', 'uncle', function() {
+    console.log('orphan from object: ' + this.get('orphan')); // eslint-disable-line no-console
     return !this.get('orphan');
   }),
 
   formatReward: computed('reward', function() {
     if (!this.get('orphan')) {
       let value = parseInt(this.get('reward')) * 0.000000000000000001;
+      console.log("reward from backend : " + this.get('reward')); // eslint-disable-line no-console
+      console.log(`parsed value: ${value}`); // eslint-disable-line no-console
       return value.toFixed(6);
     } else {
       return 0;
