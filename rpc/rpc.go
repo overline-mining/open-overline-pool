@@ -65,7 +65,7 @@ type BcChildBlockHeader struct {
   Height       uint64 `json:"height"`
   MerkleRoot   string `json:"merkleRoot"`
   BlockchainConfirmationsInParentCount uint64 `json:"blockchainConfirmationsInParentCount"`
-  MarkedTxsList []string // fill out later!
+  MarkedTxsList []string `json:"-"`// fill out later!
   MarkedTxCount uint64 `json:"markedTxCount"`
 }
 
