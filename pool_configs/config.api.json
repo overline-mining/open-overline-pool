@@ -22,7 +22,7 @@
 		"poolSize": 10,
 		"database": 0,
 		"password": "",
-    "diffToHashRate": 7.61961655e-9
+    "diffToHashRate": 1.21913865e-7
 	},
 
 	"newrelicEnabled": false,

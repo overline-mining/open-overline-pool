@@ -9,7 +9,7 @@
 		"poolSize": 10,
 		"database": 0,
 		"password": "",
-    "diffToHashRate": 7.61961655e-9
+    "diffToHashRate": 1.21913865e-7
 	},
 
 	"unlocker": {
@@ -18,9 +18,9 @@
     "poolFeeAddress": "POOL_FEE_KEY",
 		"donate": true,
 		"depth": 100,
-		"immatureDepth": 30,
+		"immatureDepth": 16,
 		"keepTxFees": false,
-		"interval": "1m",
+		"interval": "10s",
 		"daemon": "http://overline:3000/rpc",
     "scookie": "POOL_NODE_SCOOKIE",
 		"timeout": "10s"
