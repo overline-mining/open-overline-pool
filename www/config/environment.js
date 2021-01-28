@@ -15,19 +15,19 @@ module.exports = function(environment) {
 
     APP: {
       // API host and port
-      ApiUrl: 'http://157.245.116.220:6283/', // 185.209.114.83
+      ApiUrl: 'https://www.waietng-pool.us:6283', // 185.209.114.83
 
       // HTTP mining endpoint
-      HttpHost: 'http://157.245.116.220',
+      HttpHost: 'https://www.waietng-pool.us',
       HttpPort: 3142,
 
       // Stratum mining endpoint
-      StratumHost: '157.245.116.220',
+      StratumHost: 'www.waietng-pool.us',
       StratumPort: 3141,
 
       // Fee and payout details
       PoolFee: '1%',
-      PayoutThreshold: '10 Overline',
+      PayoutThreshold: '1 Overline',
 
       // For network hashrate (change for your favourite fork)
       BlockTime: 6
