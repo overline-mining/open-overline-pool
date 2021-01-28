@@ -28,15 +28,19 @@ FROM ubuntu:20.04
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates python3 python3-pip && \
     apt-get clean && rm -rf /var/lib/apt/lists
 
-RUN mkdir -p /opt/reformatter
+RUN mkdir -p /opt/reformatter && \
+    groupadd -r -g 1001 reformatter && \
+    useradd -r -d /opt/reformatter -u 1001 reformatter -g 1001 && \
+    chown reformatter:reformatter -R /opt/reformatter
 
 # Copy grpc libraries from builder image to /usr/local/lib
-COPY --from=builder /artifacts /opt/reformatter
+COPY --chown=reformatter:reformatter --from=builder /artifacts /opt/reformatter
+
+USER reformatter:reformatter
+
+ENV PATH=/opt/reformatter/.local/bin:${PATH}
 
 RUN cd /opt/reformatter/apiglue && python3 -m pip install -e . && touch .done
-
-
-RUN ls /opt/reformatter
 
 WORKDIR /opt/reformatter/apiglue
 

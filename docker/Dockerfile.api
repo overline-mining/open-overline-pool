@@ -32,12 +32,15 @@ FROM ubuntu:20.04
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates && \
     apt-get clean && rm -rf /var/lib/apt/lists
 
-RUN mkdir -p /opt/pool
+RUN groupadd -r -g 1001 pool && \
+    useradd -r -u 1001 pool -g 1001 && \
+    mkdir -p /opt/pool && \
+    chown pool:pool -R /opt/pool
 
 # Copy grpc libraries from builder image to /usr/local/lib
-COPY --from=builder /artifacts /opt/pool
+COPY --chown=pool:pool --from=builder /artifacts /opt/pool
 
-RUN ls /opt/pool
+USER pool:pool
 
 WORKDIR /opt/pool
 

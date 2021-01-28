@@ -46,9 +46,16 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists
 
-RUN mkdir -p /opt/frontend
+RUN groupadd -r -g 1001 webserver && \
+    useradd -r -u 1001 webserver -g 1001 && \
+    mkdir -p /opt/frontend && \
+    chown webserver:webserver -R /opt/frontend
 
-COPY --from=builder /artifacts /opt/frontend/
+ENV XDG_CONFIG_HOME=/opt/frontend/.config
+  
+COPY --chown=webserver:webserver --from=builder /artifacts /opt/frontend/
+
+USER webserver:webserver
 
 WORKDIR /opt/frontend/www
    
