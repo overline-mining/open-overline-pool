@@ -3,8 +3,8 @@
     <h1>How To Mine</h1>
   </div>
   <p class="lead">In order to mine on this pool you need to have an
-    <a href="https://github.com/lgray/olminer/releases" rel="nofollow" target="_blank">olminer</a> installation
-    pointed to<br/><code>stratums://YOUR_OL_ADDRESS.RIG_ID@{{config.StratumHost}}:{{config.StratumPort}}</code>
+    <a href="https://github.com/trick77/olminer/releases" rel="nofollow" target="_blank">olminer</a> installation
+    pointed to<br/><code>stratum://YOUR_OL_ADDRESS.RIG_ID@{{config.StratumHost}}:{{config.StratumPort}}</code>
   </p>
   <dl class="dl-horizontal">
     <dt>YOUR_OL_ADDRESS</dt>
@@ -20,15 +20,15 @@
   </dl>
   <p>
     <strong>Full example:</strong>
-    <code>olminer --cpu -P stratums://0xf34fa87db39d15471bebe997860dcd49fc259318.rig-1@{{config.StratumHost}}:{{config.StratumPort}}</code>.<br/>
+    <code>olminer --cpu -P stratum://0xf34fa87db39d15471bebe997860dcd49fc259318.rig-1@{{config.StratumHost}}:{{config.StratumPort}}</code>.<br/>
   </p>
 
   <h4>Stratum Mining with Stratum Proxy for Ethereum (THIS DOES NOT WORK YET)</h4>
-  <p class="lead">Grab proxy from <a href="https://github.com/Atrides/eth-proxy" re="nofollow" target="_blank">eth-proxy GitHub repo</a>.</p>
+  <p class="lead">Grab proxy from <a href="http://github.com/Atrides/eth-proxy" re="nofollow" target="_blank">eth-proxy GitHub repo</a>.</p>
   <p class="lead">Edit <code>eth-proxy.conf</code> and specify our pool's <code>HOST: {{config.StratumHost}}</code>, <code>PORT: {{config.StratumPort}}</code> and your <code>WALLET</code>.</p>
 
   <h4>Mining with Ether-Proxy</h4>
-  <p class="lead">Use stable release of <a href="https://github.com/sammy007/ether-proxy/releases" target="_blank">Ethereum Solo/Pool Mining Proxy</a>.</p>
+  <p class="lead">Use stable release of <a href="http://github.com/sammy007/ether-proxy/releases" target="_blank">Ethereum Solo/Pool Mining Proxy</a>.</p>
 
   <h4>Advice</h4>
   <p>CPU mining is currently the only way to mine right now, but we are in a testing phase.</p>
