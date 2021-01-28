@@ -15,7 +15,7 @@ module.exports = function(environment) {
 
     APP: {
       // API host and port
-      ApiUrl: 'http://www.waietng-pool.us:6283', // 185.209.114.83
+      ApiUrl: 'http://www.waietng-pool.us:6283/', // 185.209.114.83
 
       // HTTP mining endpoint
       HttpHost: 'http://www.waietng-pool.us',
