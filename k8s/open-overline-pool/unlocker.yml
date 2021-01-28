@@ -1,31 +1,41 @@
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: open-overline-pool-unlocker
+  name: open-overline-pool-unlocker-deployment
   labels:
-    app: open-overline-pool
+    app: open-overline-pool-unlocker
 spec:
-  volumes:
-  - name: config
-    secret:
-      secretName: unlocker-config-file
-  containers:
-  - name: oovp-test-container
-    image: lgray/open-overline-pool-api:latest
-    env:
-    - name: POOL_FEE_KEY
-      valueFrom:
-        secretKeyRef:
-          name: pool-fee-key
-          key: value
-    - name: POOL_NODE_SCOOKIE
-      valueFrom:
-        secretKeyRef:
-          name: pool-miner-scookie
-          key: value
-    volumeMounts:
-    - name: config
-      mountPath: "/config"
-      readOnly: true
-    args: ['/config/config.unlocker.json']
-    imagePullPolicy: Always
+  replicas: 1 # ONLY EVER ONE OF THESE!!!
+  selector:
+    matchLabels:
+      app: open-overline-pool-unlocker
+  template:
+    metadata:
+      name: open-overline-pool-unlocker
+      labels:
+        app: open-overline-pool-unlocker
+    spec:
+      volumes:
+      - name: config
+        secret:
+          secretName: unlocker-config-file
+      containers:
+      - name: oovp-test-container
+        image: lgray/open-overline-pool-api:latest
+        env:
+        - name: POOL_FEE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: pool-fee-key
+              key: value
+        - name: POOL_NODE_SCOOKIE
+          valueFrom:
+            secretKeyRef:
+              name: pool-miner-scookie
+              key: value
+        volumeMounts:
+        - name: config
+          mountPath: "/config"
+          readOnly: true
+        args: ['/config/config.unlocker.json']
+        imagePullPolicy: Always

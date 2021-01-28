@@ -1,22 +1,32 @@
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: open-overline-pool-frontend
+  name: open-overline-pool-frontend-deployment
   labels:
-    app: open-overline-pool
+    app: open-overline-pool-frontend
 spec:
-  volumes:
-  - name: ssh-secret
-    secret:
-      secretName: secret-ssh-auth
-  containers:
-    - name: oovp-test-container
-      image: lgray/open-overline-pool-frontend:latest
-      env:
-      - name: TZ
-        value: "Etc/Universal"
-      args: ['server', '--host', '0.0.0.0', '--port', '8080', '-dev']
-      ports:
-      - containerPort: 8080 # http
-      - containerPort: 7020 # live reload
-      imagePullPolicy: Always
+  replicas: 1
+  selector:
+    matchLabels:
+      app: open-overline-pool-frontend
+  template:
+    metadata:
+      name: open-overline-pool-frontend
+      labels:
+        app: open-overline-pool-frontend
+    spec:
+      volumes:
+      - name: ssh-secret
+        secret:
+          secretName: secret-ssh-auth
+      containers:
+      - name: oovp-test-container
+        image: lgray/open-overline-pool-frontend:latest
+        env:
+        - name: TZ
+          value: "Etc/Universal"
+        args: ['server', '--host', '0.0.0.0', '--port', '80', '-dev']
+        ports:
+        - containerPort: 80 # http
+        - containerPort: 7020 # live reload
+        imagePullPolicy: Always

@@ -1,29 +1,39 @@
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: open-overline-pool-proxy
+  name: open-overline-pool-proxy-deployment
   labels:
-    app: open-overline-pool
+    app: open-overline-pool-proxy
 spec:
-  volumes:
-  - name: config
-    secret:
-      secretName: proxy-config-file
-  containers:
-  - name: oovp-test-container
-    image: lgray/open-overline-pool-api:latest
-    env:
-    - name: POOL_NODE_SCOOKIE
-      valueFrom:
-        secretKeyRef:
-          name: pool-miner-scookie
-          key: value
-    volumeMounts:
-    - name: config
-      mountPath: "/config"
-      readOnly: true
-    args: ['/config/config.proxy.json']
-    ports:
-    - containerPort: 3141 # stratum mining
-    - containerPort: 3142 # http mining
-    imagePullPolicy: Always
+  replicas: 1
+  selector:
+    matchLabels:
+      app: open-overline-pool-proxy
+  template:
+    metadata:
+      name: open-overline-pool-proxy
+      labels:
+        app: open-overline-pool-proxy
+    spec:
+      volumes:
+      - name: config
+        secret:
+          secretName: proxy-config-file
+      containers:
+      - name: oovp-test-container
+        image: lgray/open-overline-pool-api:latest
+        env:
+        - name: POOL_NODE_SCOOKIE
+          valueFrom:
+            secretKeyRef:
+              name: pool-miner-scookie
+              key: value
+        volumeMounts:
+        - name: config
+          mountPath: "/config"
+          readOnly: true
+        args: ['/config/config.proxy.json']
+        ports:
+        - containerPort: 3141 # stratum mining
+        - containerPort: 3142 # http mining
+        imagePullPolicy: Always
