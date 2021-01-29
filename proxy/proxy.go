@@ -20,6 +20,11 @@ import (
 	"github.com/lgray/open-overline-pool/util"
 )
 
+type heightCompletedPair struct {
+  height      uint64
+  isCompleted bool
+}
+
 type ProxyServer struct {
 	config             *Config
 	blockTemplate      atomic.Value
@@ -36,6 +41,7 @@ type ProxyServer struct {
 	sessionsMu sync.RWMutex
 	sessions   map[*Session]struct{}
 	timeout    time.Duration
+
 }
 
 type Session struct {

@@ -19,6 +19,10 @@ const maxBacklog = 3
 type heightDiffPair struct {
 	diff   *big.Int
 	height uint64
+  Work string
+  MinerKey string
+  MerkleRoot string
+  Timestamp int64
 }
 
 type BlockTemplate struct {
@@ -34,8 +38,9 @@ type BlockTemplate struct {
 	MinerKey             string
 	MerkleRoot           string
 	WorkId               string
-  Timestamp            uint64
+  Timestamp            int64
   LastBlockHash        string
+  BlockIsSubmitted     bool
 }
 
 type Block struct {
@@ -65,6 +70,8 @@ func (s *ProxyServer) fetchBlockTemplate() {
 	t := s.currentBlockTemplate()
 	reply, err := r_mine.GetWork()
 
+  blockissubmitted, _ := strconv.ParseBool(reply[8])
+  
   if len(reply) == 0 || len(reply[0]) == 0 {
     log.Printf("No block template from node yet!")
     return
@@ -76,6 +83,13 @@ func (s *ProxyServer) fetchBlockTemplate() {
 	}
 	// No need to update, we have fresh job
 	if t != nil && t.Header == reply[0] {
+    // if block completed state updated change our template
+    if blockissubmitted && blockissubmitted != t.BlockIsSubmitted {
+      update := *t
+      update.BlockIsSubmitted = blockissubmitted
+      s.blockTemplate.Store(&update)
+      log.Printf("block %v:%v template marked completed!", t.WorkId, t.Header)
+    } 
 		return
 	}
 	diff := new(big.Int)
@@ -83,8 +97,8 @@ func (s *ProxyServer) fetchBlockTemplate() {
 	//log.Println(diff)
 	height, err := strconv.ParseUint(string(reply[3]), 10, 64)
 
-  thetimestamp, _ := strconv.ParseUint(reply[6], 10, 64)
-  
+  thetimestamp, _ := strconv.ParseInt(reply[6], 10, 64)
+    
 	pendingReply := &rpc.GetBlockReplyPart{
 		Difficulty: strconv.FormatInt(s.config.Proxy.Difficulty, 10),
 		Number:     json.Number(reply[3]),
@@ -103,11 +117,16 @@ func (s *ProxyServer) fetchBlockTemplate() {
 		WorkId:               reply[4],
     Timestamp:            thetimestamp,
     LastBlockHash:        reply[7],
+    BlockIsSubmitted:     blockissubmitted,
 	}
 	// Copy job backlog and add current one
-	newTemplate.headers[reply[0]] = heightDiffPair{
-		diff:   diff,
-		height: height,
+	newTemplate.headers[reply[4]] = heightDiffPair{
+		diff:       diff,
+		height:     height,
+    Work:       reply[0],
+    MinerKey:   reply[5],
+    MerkleRoot: reply[1],
+    Timestamp:  thetimestamp,
 	}
 	if t != nil {
 		for k, v := range t.headers {

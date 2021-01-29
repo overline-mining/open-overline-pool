@@ -226,7 +226,6 @@ func (r *RedisClient) WriteBlock(login, id string, params []string, diff, roundD
 
 	ms := util.MakeTimestamp()
 	ts := ms / 1000
-
 	cmds, err := tx.Exec(func() error {
 		r.writeShare(tx, ms, ts, login, id, diff, window)
 		tx.HSet(r.formatKey("stats"), "lastBlockFound", strconv.FormatInt(ts, 10))
@@ -265,8 +264,8 @@ func (r *RedisClient) formatKey(args ...interface{}) string {
 	return join(r.prefix, join(args...))
 }
 
-func (r *RedisClient) formatRound(height int64, nonce string) string {
-	return r.formatKey("shares", "round"+strconv.FormatInt(height, 10), nonce)
+func (r *RedisClient) formatRound(height int64, hash string) string {
+	return r.formatKey("shares", "round"+strconv.FormatInt(height, 10), hash)
 }
 
 func join(args ...interface{}) string {

@@ -1,0 +1,35 @@
+--- officer.js	2021-01-20 00:36:19.020000000 -0600
++++ officer.js.patched	2021-01-20 03:53:55.480000000 -0600
+@@ -26,7 +26,8 @@
+ const { calcTxFee } = require('bcjs/dist/transaction');
+ const { max, mean, merge, all, equals, values, min } = require('ramda');
+ 
+-const { prepareWork, prepareNewBlock, getUniqueBlocks } = require('./primitives');
++const { blake2bl } = require('../utils/crypto');
++const { distance, prepareWork, prepareNewBlock, getUniqueBlocks, getExpFactorDiff, getNewPreExpDifficulty, getNewestHeader, getNewBlockCount } = require('./primitives');
+ let numCPUs = max(1, Number(require('os').cpus().length) - 1);
+ const BC_MINER_WORKERS = process.env.BC_MINER_WORKERS !== undefined ? parseInt(process.env.BC_MINER_WORKERS) : numCPUs;
+ const { getLogger } = require('../logger');
+@@ -843,6 +844,22 @@
+           return;
+         }
+ 
++       var nonce_hash = blake2bl(response.getNonce());
++       var result_hash = blake2bl(minerRequest.getMinerKey() + minerRequest.getMerkleRoot() + nonce_hash + response.getTimestamp());
++       var result_distance = distance(minerRequest.getWork(), result_hash);
++       var dist_rpc = response.getDistance();
++       response.setDistance(result_distance.toString());
++
++       this._logger.info(`miner response raw distance: ${dist_rpc}`);
++       this._logger.info(`js recalc distance         : ${result_distance}`);
++
++       const worker_time = response.getTimestamp();
++       const request_time = minerRequest.getCurrentTimestamp();
++       response.setTimestamp(minerRequest.getCurrentTimestamp());
++
++       this._logger.info(`miner response raw timestamp: ${worker_time}`);
++       this._logger.info(`block current timestamp     : ${request_time}`)
++
+         this._logger.info(`found work ${workId} from rust miner`);
+         this._logger.info('response from rust miner', response.toObject());
+ 

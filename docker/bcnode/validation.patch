@@ -1,0 +1,56 @@
+--- validation.js	2021-01-19 17:11:49.730000000 -0600
++++ validation.js.patched	2021-01-19 17:14:50.210000000 -0600
+@@ -114,29 +114,29 @@
+ 
+   debug(`determining block validity for ${newBlock.getHeight()}.${newBlock.getHash()}`);
+   if (!theBlockChainFingerPrintMatchGenesisBlock(newBlock)) {
+-    logger.debug('failed: theBlockChainFingerPrintMatchGenesisBlock');
++    logger.warn('failed: theBlockChainFingerPrintMatchGenesisBlock');
+     return false;
+   } // DISABLED UNTIL AT
+   if (!numberOfBlockchainsNeededMatchesChildBlock(newBlock)) {
+-    logger.debug('failed: numberOfBlockchainsNeededMatchesChildBlock');
++    logger.warn('failed: numberOfBlockchainsNeededMatchesChildBlock');
+     return false;
+   }
+   if (!ifMoreThanOneHeaderPerBlockchainAreTheyOrdered(newBlock)) {
+-    logger.debug('failed: ifMoreThanOneHeaderPerBlockchainAreTheyOrdered');
++    logger.warn('failed: ifMoreThanOneHeaderPerBlockchainAreTheyOrdered');
+     return false;
+   }
+   if (!isChainRootCorrectlyCalculated(newBlock)) {
+-    logger.debug('failed: isChainRootCorrectlyCalculated');
++    logger.warn('failed: isChainRootCorrectlyCalculated');
+     return false;
+   }
+   if (!isFieldLengthBounded(newBlock)) {
+-    logger.debug(`block ${newBlock.getHeight()} failed: isFieldLengthBounded`);
++    logger.warn(`block ${newBlock.getHeight()} failed: isFieldLengthBounded`);
+     return false;
+   }
+ 
+   if (parseInt(newBlock.getHeight(), 10) > 665616) {
+     if (!isMerkleRootCorrectlyCalculated(newBlock)) {
+-      logger.debug(`block ${newBlock.getHeight()} failed: isMerkleRootCorrectlyCalculated`);
++      logger.warn(`block ${newBlock.getHeight()} failed: isMerkleRootCorrectlyCalculated`);
+       return false;
+     }
+   }
+@@ -146,14 +146,14 @@
+   //  return false
+   // }
+   if (!isDistanceAboveDifficulty(newBlock)) {
+-    logger.debug(`block ${newBlock.getHeight()} failed: isDistanceAboveDifficulty`);
++    logger.warn(`block ${newBlock.getHeight()} failed: isDistanceAboveDifficulty`);
+     return false;
+   }
+   if (!isDistanceCorrectlyCalculated(newBlock)) {
+-    logger.debug(`block ${newBlock.getHeight()} failed: isDistanceCorrectlyCalculated`);
++    logger.warn(`block ${newBlock.getHeight()} failed: isDistanceCorrectlyCalculated`);
+     return false;
+   }
+-  debug(`${newBlock.getHeight()}.${newBlock.getHash()} is valid`);
++  logger.info(`${newBlock.getHeight()}.${newBlock.getHash()} is valid`);
+ 
+   return true;
+ }

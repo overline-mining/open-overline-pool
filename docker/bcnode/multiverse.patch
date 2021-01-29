@@ -1,0 +1,229 @@
+--- multiverse.js	2021-01-19 17:16:19.430000000 -0600
++++ multiverse.js.patched	2021-01-19 17:24:27.300000000 -0600
+@@ -584,7 +584,7 @@
+ 
+     if (!isolatedValid) {
+       /// UUU
+-      debug(`block failed isolated valid test`);
++      this._logger.warn(`block failed isolated valid test`);
+       return Promise.resolve({
+         stored: false,
+         needsResync: false,
+@@ -607,11 +607,11 @@
+     const reorgFromBlock = await this.persistence.get(`${blockchain}.block.reorgfrom`);
+     if (reorgFromBlock && parseInt(newBlock.getHeight(), 10) > parseInt(reorgFromBlock.getHeight(), 10)) {
+       // LDL
+-      debug(`multichain is updating <- storing block for future evaluation`);
++      this._logger.warn(`multichain is updating <- storing block for future evaluation`);
+       await this.persistence.putBlock(newBlock, 0, blockchain, { asHeader: false, context: context });
+     } else {
+       // LDL
+-      debug(`storing block ${newBlock.getHeight()} ${newBlock.getHash()}`);
++      this._logger.warn(`storing block ${newBlock.getHeight()} ${newBlock.getHash()}`);
+       await this.persistence.putBlock(newBlock, 0, blockchain, { asHeader: false, context: context });
+     }
+ 
+@@ -622,12 +622,12 @@
+     if (blockchain === BC_SUPER_COLLIDER) {
+ 
+       if (peerExpired) {
+-        debug(`multiverse state is complete`);
++        this._logger.warn(`multiverse state is complete`);
+       }
+ 
+       if (edge) {
+         syncComplete = true;
+-        debug(`extendMultiverse(): ${blockchain} block ${newBlock.getHeight()} compared with local ${latestBlockHeight} and edge ${edge}`);
++        this._logger.warn(`extendMultiverse(): ${blockchain} block ${newBlock.getHeight()} compared with local ${latestBlockHeight} and edge ${edge}`);
+         if (synced && synced === 'pending' && new BN(edge).lt(new BN(newBlock.getHeight()))) {
+           if (!currentPeer) {
+             synced = 'reorg';
+@@ -643,7 +643,7 @@
+ 
+         if (edge && new BN(edge).lt(new BN(newBlock.getHeight()))) {
+           await this.persistence.put(`${BC_SUPER_COLLIDER}.sync.edge`, parseInt(newBlock.getHeight(), 10));
+-          debug(`updated multiverse edge <- ${newBlock.getHeight()}`);
++          this._logger.warn(`updated multiverse edge <- ${newBlock.getHeight()}`);
+         }
+ 
+         let lowest = latestBlockHeight;
+@@ -676,7 +676,7 @@
+           rangeRequest.highestHeight = parseInt(newBlock.getHeight(), 10);
+           rangeRequest.lowestHeight = parseInt(lowestLatestBlock.getHeight(), 10);
+           // LDL
+-          debug(`reorg request opened`);
++          this._logger.warn(`reorg request opened`);
+           return Promise.resolve({
+             stored: true,
+             needsResync: true,
+@@ -695,7 +695,7 @@
+         if (synced && currentPeer && synced === 'pending') {
+           // LDL
+           // UUU
+-          debug(`multiverse changing around ${edge}, yielding ${newBlock.getHeight()}`);
++          this._logger.warn(`multiverse changing around ${edge}, yielding ${newBlock.getHeight()}`);
+           return Promise.resolve({
+             valid: false,
+             stored: false,
+@@ -740,7 +740,7 @@
+                 lowestHeight: parseInt(reorgFromBlock.getHeight(), 10)
+                 // LDLdebug
+                 // UUU
+-              };debug(`miner does not need to rebase on block ${newBlock.getHeight()}`);
++              };this._logger.warn(`miner does not need to rebase on block ${newBlock.getHeight()}`);
+               return Promise.resolve({
+                 stored: false, // it was stored above but we dont need miner to rebase on it
+                 needsResync: true,
+@@ -834,7 +834,7 @@
+     }, true);
+ 
+     if (!validBlockSeq.valid && !childrenHeightsValid && parseInt(latestBlock.getHeight(), 10) > 1 && parseInt(latestBlock.getHeight(), 10) + 1 === parseInt(newBlock.getHeight(), 10)) {
+-      debug(`purposed ${blockchain} block ${newBlock.getHeight()} rejected child blocks are not in sequence with the current latest block ${latestBlock.getHeight()} adding schedules ${validBlockSeq.schedules ? validBlockSeq.schedules.length : []}`);
++      this._logger.warn(`purposed ${blockchain} block ${newBlock.getHeight()} rejected child blocks are not in sequence with the current latest block ${latestBlock.getHeight()} adding schedules ${validBlockSeq.schedules ? validBlockSeq.schedules.length : []}`);
+       if (failed.length > 0) {
+         this._logger.warn(`the failed child sequence is ${JSON.stringify(failed, null, 2)}`);
+       }
+@@ -862,13 +862,13 @@
+       }
+     }
+ 
+-    debug(`extends chain state ${extendsChainState}`);
++    this._logger.info(`extends chain state ${extendsChainState}`);
+ 
+     if (extendsChainState || BC_NAIVE || newBlock.getPreviousHash() === latestBlock.getHash()) {
+       if (!validBlockSeq.valid && updateStorage) {
+         if (context === 'local') {
+           /// UUU
+-          debug(`${blockchain} block ${newBlock.getHeight()} rejected invalid mined block sequence`);
++          this._logger.warn(`${blockchain} block ${newBlock.getHeight()} rejected invalid mined block sequence`);
+           return Promise.resolve({
+             valid: validBlockSeq.valid,
+             stored: false,
+@@ -914,7 +914,7 @@
+             });
+             // }
+           } else {
+-            debug(`BC_NAIVE === true however block ${newBlock.getHeight()} was rejected`);
++            this._logger.warn(`BC_NAIVE === true however block ${newBlock.getHeight()} was rejected`);
+           }
+         }
+ 
+@@ -944,7 +944,7 @@
+           });
+         } else {
+           // LDL
+-          debug(`unable to open change request from ${low} to ${high}`);
++          this._logger.warn(`unable to open change request from ${low} to ${high}`);
+           return Promise.resolve({
+             stored: false,
+             needsResync: false,
+@@ -958,7 +958,7 @@
+       const validRoverHeaders = flagBlock ? true : await this.validateRoveredBlocks(newBlock, { softFail: true });
+       if (!validRoverHeaders) {
+         /// UUU
+-        debug(`${blockchain} block ${newBlock.getHeight()} : undiscovered rovered block sequence`);
++        this._logger.warn(`${blockchain} block ${newBlock.getHeight()} : undiscovered rovered block sequence`);
+       }
+ 
+       if (!validCoinbase) {
+@@ -989,12 +989,12 @@
+ 
+       if (edge && new BN(edge).lt(new BN(newBlock.getHeight()))) {
+         await this.persistence.put(`${BC_SUPER_COLLIDER}.sync.edge`, parseInt(newBlock.getHeight(), 10));
+-        debug(`updated multiverse edge <- ${newBlock.getHeight()}`);
++        this._logger.warn(`updated multiverse edge <- ${newBlock.getHeight()}`);
+       }
+ 
+       const r = this._knownRovers[Math.floor(Math.random() * this._knownRovers.length)];
+       if (this._chainState && updateStorage) {
+-        debug(`updated latest block <- ${newBlock.getHeight()}`);
++        this._logger.warn(`updated latest block <- ${newBlock.getHeight()}`);
+ 
+         await this.persistence.putLatestBlock(newBlock, blockchain, { chainState: this._chainState, context: context });
+ 
+@@ -1012,19 +1012,19 @@
+           const roveredHeader = last(newBlock.getBlockchainHeaders()[chainToGet(rover)]());
+           const roverBlock = await this.persistence.get(`${rover}.block.latest`);
+           if (roveredHeader) {
+-            debug(`rover ${rover} block ${roveredHeader.getHeight()} : ${roveredHeader.getHash().slice(0, 21)}...`);
++            this._logger.info(`rover ${rover} block ${roveredHeader.getHeight()} : ${roveredHeader.getHash().slice(0, 21)}...`);
+             if (!roverBlock) {
+-              debug(`multiverse latest ${rover} rover block is ${roveredHeader.getHeight()}, given rover block ${roveredHeader.getHeight()}`);
++              this._logger.warn(`multiverse latest ${rover} rover block is ${roveredHeader.getHeight()}, given rover block ${roveredHeader.getHeight()}`);
+               await this.persistence.putLatestBlock(roveredHeader, blockchain, { chainState: this._chainState });
+             } else if (parseInt(roverBlock.getHeight(), 10) < parseInt(roveredHeader.getHeight(), 10)) {
+-              debug(`multiverse latest ${rover} rover block ${roverBlock.getHeight()} is less than ${roveredHeader.getHeight()}`);
++              this._logger.warn(`multiverse latest ${rover} rover block ${roverBlock.getHeight()} is less than ${roveredHeader.getHeight()}`);
+               await this.persistence.putLatestBlock(roveredHeader, blockchain, { chainState: this._chainState });
+               //} else if (parseInt(roverBlock.getHeight(), 10) === parseInt(newBlock.getHeight(), 10) && roverBlock.getHash() !== roveredHeader.getHash()) {
+             } else if (parseInt(roverBlock.getHeight(), 10) === parseInt(newBlock.getHeight(), 10)) {
+-              debug(`multiverse latest ${rover} rover block is ${roveredHeader.getHeight()}, given rover block ${roveredHeader.getHeight()}`);
++              this._logger.warn(`multiverse latest ${rover} rover block is ${roveredHeader.getHeight()}, given rover block ${roveredHeader.getHeight()}`);
+               await this.persistence.putLatestBlock(roveredHeader, blockchain, { chainState: this._chainState });
+             } else {
+-              debug(`multiverse latest ${rover} rover block is ${roverBlock.getHeight()}, given rover block ${roveredHeader.getHeight()}`);
++              this._logger.warn(`multiverse latest ${rover} rover block is ${roverBlock.getHeight()}, given rover block ${roveredHeader.getHeight()}`);
+             }
+           }
+           if (roverBlock && r === rover) {
+@@ -1045,16 +1045,16 @@
+             const roverBlock = await this.persistence.get(`${rover}.block.latest`);
+             if (roveredHeader) {
+               if (!roverBlock) {
+-                debug(`multiverse latest ${rover} rover block is new to disk ${roveredHeader.getHeight()}`);
++                this._logger.info(`multiverse latest ${rover} rover block is new to disk ${roveredHeader.getHeight()}`);
+                 await this.persistence.putLatestBlock(roveredHeader, blockchain, { chainState: this._chainState });
+               } else if (parseInt(roverBlock.getHeight(), 10) < parseInt(roveredHeader.getHeight(), 10)) {
+-                debug(`multiverse latest ${rover} rover block ${roverBlock.getHeight()} is less than ${roveredHeader.getHeight()}`);
++                this._logger.warn(`multiverse latest ${rover} rover block ${roverBlock.getHeight()} is less than ${roveredHeader.getHeight()}`);
+                 await this.persistence.putLatestBlock(roveredHeader, blockchain, { chainState: this._chainState });
+               } else if (parseInt(roverBlock.getHeight(), 10) === parseInt(newBlock.getHeight(), 10) && roverBlock.getHash() !== roveredHeader.getHash()) {
+-                debug(`multiverse latest ${rover} rover block is ${roveredHeader.getHeight()}`);
++                this._logger.warn(`multiverse latest ${rover} rover block is ${roveredHeader.getHeight()}`);
+                 await this.persistence.putLatestBlock(roveredHeader, blockchain, { chainState: this._chainState });
+               } else {
+-                debug(`multiverse latest ${rover} rover block is ${roverBlock.getHeight()}`);
++                this._logger.warn(`multiverse latest ${rover} rover block is ${roverBlock.getHeight()}`);
+               }
+             }
+             if (roverBlock && r === rover) {
+@@ -1067,8 +1067,8 @@
+       if (BC_STRICT_SEQ && parseInt(newBlock.getHeight(), 10) % 1000 === 0) {
+         const missingBlock = await this.persistence.getMissingBlockFromHeight(blockchain, newBlock, 1000);
+         if (missingBlock) {
+-          debug(`missing block found after latest ${newBlock.getHeight()} : ${newBlock.getHash()}`);
+-          debug(JSON.stringify(missingBlock, null, 2));
++          this._logger.warn(`missing block found after latest ${newBlock.getHeight()} : ${newBlock.getHash()}`);
++          this._logger.warn(JSON.stringify(missingBlock, null, 2));
+         }
+       }
+ 
+@@ -1089,8 +1089,8 @@
+     // 3.REJECT: block child heights below parent
+     const purposedBlockChildHeightSum = childrenHeightSum(newBlock);
+     const latestBlockChildHeightSum = childrenHeightSum(latestBlock);
+-    debug('child height new block #' + newBlock.getHeight() + ' with connected chain total ' + purposedBlockChildHeightSum);
+-    debug('latest height new block #' + latestBlock.getHeight() + ' with connected chain total ' + latestBlockChildHeightSum);
++    this._logger.info('child height new block #' + newBlock.getHeight() + ' with connected chain total ' + purposedBlockChildHeightSum);
++    this._logger.info('latest height new block #' + latestBlock.getHeight() + ' with connected chain total ' + latestBlockChildHeightSum);
+     const defaultHighest = parseInt(newBlock.getHeight(), 10);
+     const defaultLowest = max(2, parseInt(latestBlock.getHeight(), 10) - 5);
+ 
+@@ -1135,7 +1135,7 @@
+     lowest = max(2, lowest - 1);
+ 
+     if (new BN(newBlock.getTotalDistance()).lt(new BN(latestBlock.getTotalDistance()))) {
+-      debug(`purposed ${blockchain} block ${newBlock.getHeight()} rejected as total distance is lower newBlock: ${newBlock.getTotalDistance()} latestBlock: ${latestBlock.getTotalDistance()}`);
++      this._logger.warn(`purposed ${blockchain} block ${newBlock.getHeight()} rejected as total distance is lower newBlock: ${newBlock.getTotalDistance()} latestBlock: ${latestBlock.getTotalDistance()}`);
+       return Promise.resolve({
+         stored: false,
+         needsResync: false,
+@@ -1161,7 +1161,7 @@
+       currentPeer = await this.persistence.get(`${BC_SUPER_COLLIDER}.sync.initialpeer`);
+ 
+       if (currentPeer && parseInt(currentPeer.getExpires(), 10) < Number(new Date())) {
+-        debug(`current peer still set returning block`);
++        this._logger.warn(`current peer still set returning block`);
+         return Promise.resolve({
+           stored: false,
+           needsResync: false,
