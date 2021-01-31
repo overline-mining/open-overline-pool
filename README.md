@@ -1,6 +1,6 @@
 ## Open Source Overline Mining Pool
 
-![Miner's stats page](https://user-images.githubusercontent.com/7374093/31591180-43c72364-b236-11e7-8d47-726cd66b876a.png)
+![Miner's stats page](https://user-images.githubusercontent.com/1068089/106371835-e4035080-632e-11eb-9fdc-73c3bb420b5b.png)
 
 ### Features
 
@@ -12,73 +12,69 @@
 * JSON-API for stats
 * kubenetes based deployment for all elements of mining pool for maximum reliability
 
-#### Proxies
+#### Proxies (not yet available)
 
 * [Overline-Proxy](https://github.com/sammy007/ether-proxy) HTTP proxy with web interface
 * [Stratum Proxy](https://github.com/Atrides/eth-proxy) for Overline
 
-### Building on Linux
+### Bringing a pool up in a linux environment
 
 Dependencies:
 
-  * go >= 1.9
+  * go >= 1.13
   * bcnode (does it even have versions at this point, it's more a stream of consciousness)
   * redis-server >= 2.8.0
-  * nodejs >= 4 LTS
+  * nodejs ~ 10 LTS
   * nginx
   * kubernetes >= 1.20 (use minikube for local / non-production builds)
 
 **I highly recommend to use Ubuntu 20.04 LTS.**
 
-First install  [go-ethereum](https://github.com/ethereum/go-ethereum/wiki/Installation-Instructions-for-Ubuntu).
+This whole installation is containerized and comes with a full kubernetes based setup.
+Below we will walk through instructions for running the pool on minikube in a testing environment.
 
-Clone & compile:
 
-    git config --global http.https://gopkg.in.followRedirects true
-    git clone https://github.com/sammy007/open-ethereum-pool.git
-    cd open-ethereum-pool
-    make
+1. Clone this repository `git clone https://github.com/overline-mining/open-overline-pool.git`
 
-Install redis-server.
+2. Install [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
 
-### Running Pool
+3. Install [minikube](https://minikube.sigs.k8s.io/docs/start/#binary-download)
 
-    ./build/bin/open-ethereum-pool config.json
+4. Setup secrets:
 
-You can use Ubuntu upstart - check for sample config in <code>upstart.conf</code>.
+    ```bash
+    cd open-overline-pool/k8s
+    # NOTE -->  edit the file "config" to contain whatever addresses, http auth passwords, and keys you wish to use
+    ./make-secrets.sh
+    ```
 
-### Building Frontend
+5. Initialize bcnode (you will need a chainstate snapshot saved as a `.tar.gz` file):
 
-Install nodejs. I suggest using LTS version >= 4.x from https://github.com/nodesource/distributions or from your Linux distribution or simply install nodejs on Ubuntu Xenial 16.04.
+    ```bash
+    cd open-overline-pool/k8s
+    kubectl apply -f bcnode/
+    ./upload-db.sh $(kubectl get pods | grep bcnode | awk '{print $1}') /path/to/chainstate.tar.gz
+    # wait for a bit for the node's initialization container to unpack the chainstate
+    # follow progress with
+    kubectl logs $(kubectl get pods | grep bcnode | awk '{print $1}') -c get-bcnode-db-container -f --tail 10
+    # once that is done follow the bcnode logs and wait for it to sync
+    kubectl logs $(kubectl get pods | grep bcnode | awk '{print $1}') -c bcnode -f --tail 10
+    ```
 
-The frontend is a single-page Ember.js application that polls the pool API to render miner stats.
+6. While the bcnode is syncing, setup redis.
 
-    cd www
+    ```bash
+    kubectl apply -f redis/
+    ```
 
-Change <code>ApiUrl: '//example.net/'</code> in <code>www/config/environment.js</code> to match your domain name. Also don't forget to adjust other options.
+7. Once the bcnode is synced bring open-overline-pool online as follows:
 
-    npm install -g ember-cli@2.9.1
-    npm install -g bower
-    npm install
-    bower install
-    ./build.sh
+    ```bash
+    kubectl apply -f open-overline-pool/
+    ./local-port-forward.sh
+    ```
 
-Configure nginx to serve API on <code>/api</code> subdirectory.
-Configure nginx to serve <code>www/dist</code> as static website.
-
-#### Serving API using nginx
-
-Create an upstream for API:
-
-    upstream api {
-        server 127.0.0.1:8080;
-    }
-
-and add this setting after <code>location /</code>:
-
-    location /api {
-        proxy_pass http://api;
-    }
+8. You should now be able to point a browser to `localhost` and see the splash page. You can also test that the pool is accepting jobs by pointing a overline-compatible stratum miner at it.
 
 #### Customization
 
@@ -326,5 +322,3 @@ WAV: `3P6Vaod2dVdk9542QhVAroXimR1m6ThXLjh`
 LSK: `4823425666801418479L`
 
 Original author ETH: `0xb85150eb365e7df0941f0cf08235f987ba91506a`
-
-![](https://cdn.pbrd.co/images/GP5tI1D.png)
