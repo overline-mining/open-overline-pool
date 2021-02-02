@@ -207,8 +207,9 @@ func (s *ApiServer) BlocksIndex(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Cache-Control", "no-cache")
-  w.WriteHeader(http.StatusOK)
   br := brotli.HTTPCompressor(w, r)
+  w.WriteHeader(http.StatusOK)
+
 
 	reply := make(map[string]interface{})
 	stats := s.getStats()
