@@ -3,12 +3,12 @@ name: CI/CD
 on:
   push:
     branches:
-      - master
+      - main
     tags:
       - v*.*.*
   pull_request:
     branches:
-      - master
+      - main
   # Run daily at 0:01 UTC
   schedule:
     - cron:  '1 0 * * *'
