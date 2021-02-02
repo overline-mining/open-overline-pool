@@ -14,6 +14,8 @@ import (
 
 	"github.com/lgray/open-overline-pool/storage"
 	"github.com/lgray/open-overline-pool/util"
+
+  "github.com/andybalholm/brotli"
 )
 
 type ApiConfig struct {
@@ -205,7 +207,8 @@ func (s *ApiServer) BlocksIndex(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Cache-Control", "no-cache")
-	w.WriteHeader(http.StatusOK)
+  br := brotli.HTTPCompressor(w, r)
+  w.WriteHeader(http.StatusOK)
 
 	reply := make(map[string]interface{})
 	stats := s.getStats()
@@ -218,15 +221,12 @@ func (s *ApiServer) BlocksIndex(w http.ResponseWriter, r *http.Request) {
 		reply["candidatesTotal"] = stats["candidatesTotal"]
 		reply["luck"] = stats["luck"]
 	}
-
-  log.Println("----- raw reply for BlocksIndex -----")
-  log.Println(reply)
-  log.Println("----- end reply for BlocksIndex -----")
   
-	err := json.NewEncoder(w).Encode(reply)
+	err := json.NewEncoder(br).Encode(reply)  
 	if err != nil {
 		log.Println("Error serializing API response: ", err)
 	}
+
 }
 
 func (s *ApiServer) PaymentsIndex(w http.ResponseWriter, r *http.Request) {
