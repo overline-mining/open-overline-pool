@@ -227,7 +227,7 @@ func (s *ApiServer) BlocksIndex(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println("Error serializing API response: ", err)
 	}
-
+  br.Close()
 }
 
 func (s *ApiServer) PaymentsIndex(w http.ResponseWriter, r *http.Request) {
