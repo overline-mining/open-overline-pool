@@ -156,6 +156,7 @@ func (s *ApiServer) StatsIndex(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Cache-Control", "no-cache")
+  br := brotli.HTTPCompressor(w, r)
 	w.WriteHeader(http.StatusOK)
 
 	reply := make(map[string]interface{})
@@ -176,16 +177,18 @@ func (s *ApiServer) StatsIndex(w http.ResponseWriter, r *http.Request) {
 		reply["candidatesTotal"] = stats["candidatesTotal"]
 	}
 
-	err = json.NewEncoder(w).Encode(reply)
+	err = json.NewEncoder(br).Encode(reply)
 	if err != nil {
 		log.Println("Error serializing API response: ", err)
 	}
+  br.Close()
 }
 
 func (s *ApiServer) MinersIndex(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Cache-Control", "no-cache")
+  br := brotli.HTTPCompressor(w, r)
 	w.WriteHeader(http.StatusOK)
 
 	reply := make(map[string]interface{})
@@ -197,10 +200,11 @@ func (s *ApiServer) MinersIndex(w http.ResponseWriter, r *http.Request) {
 		reply["minersTotal"] = stats["minersTotal"]
 	}
 
-	err := json.NewEncoder(w).Encode(reply)
+	err := json.NewEncoder(br).Encode(reply)
 	if err != nil {
 		log.Println("Error serializing API response: ", err)
 	}
+  br.Close()
 }
 
 func (s *ApiServer) BlocksIndex(w http.ResponseWriter, r *http.Request) {
@@ -234,6 +238,7 @@ func (s *ApiServer) PaymentsIndex(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Cache-Control", "no-cache")
+  br := brotli.HTTPCompressor(w, r)
 	w.WriteHeader(http.StatusOK)
 
 	reply := make(map[string]interface{})
@@ -243,17 +248,19 @@ func (s *ApiServer) PaymentsIndex(w http.ResponseWriter, r *http.Request) {
 		reply["paymentsTotal"] = stats["paymentsTotal"]
 	}
 
-	err := json.NewEncoder(w).Encode(reply)
+	err := json.NewEncoder(br).Encode(reply)
 	if err != nil {
 		log.Println("Error serializing API response: ", err)
 	}
+  br.Close()
 }
 
 func (s *ApiServer) AccountIndex(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Cache-Control", "no-cache")
-
+  br := brotli.HTTPCompressor(w, r)
+  
 	login := strings.ToLower(mux.Vars(r)["login"])
 	s.minersMu.Lock()
 	defer s.minersMu.Unlock()
@@ -295,10 +302,11 @@ func (s *ApiServer) AccountIndex(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	err := json.NewEncoder(w).Encode(reply.stats)
+	err := json.NewEncoder(br).Encode(reply.stats)
 	if err != nil {
 		log.Println("Error serializing API response: ", err)
 	}
+  br.Close()
 }
 
 func (s *ApiServer) getStats() map[string]interface{} {
