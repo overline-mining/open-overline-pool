@@ -49,8 +49,7 @@
 +    logger.warn(`block ${newBlock.getHeight()} failed: isDistanceCorrectlyCalculated`);
      return false;
    }
--  debug(`${newBlock.getHeight()}.${newBlock.getHash()} is valid`);
-+  logger.info(`${newBlock.getHeight()}.${newBlock.getHash()} is valid`);
+   debug(`${newBlock.getHeight()}.${newBlock.getHash()} is valid`);
  
    return true;
  }

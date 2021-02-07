@@ -186,6 +186,18 @@ func (u *PayoutsProcessor) process() {
 			break
 		}
 
+    for len(txHash) == 0 {
+      txHash, err = u.rpc.SendTransaction(poolAddress, login,  value, os.Getenv(u.config.PrivKeyEnv))
+      if err != nil {
+        log.Printf("Failed to send payment to %s, %v Shannon: %v. Check outgoing tx for %s in block explorer and docs/PAYOUTS.md",
+          login, amount, err, login)
+        u.halt = true
+        u.lastFail = err
+        break
+      }
+      time.Sleep(time.Second)
+    }
+
 		// Log transaction hash
 		err = u.backend.WritePayment(login, txHash, amount)
 		if err != nil {
