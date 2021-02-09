@@ -15,14 +15,14 @@ module.exports = function(environment) {
 
     APP: {
       // API host and port
-      ApiUrl: 'http://www.waietng-pool.us:6283/', // 185.209.114.83
+      ApiUrl: 'http://135.148.33.155:6283/', // 185.209.114.83
 
       // HTTP mining endpoint
-      HttpHost: 'http://www.waietng-pool.us',
+      HttpHost: 'http://135.148.33.155',
       HttpPort: 3142,
 
       // Stratum mining endpoint
-      StratumHost: 'www.waietng-pool.us',
+      StratumHost: '135.148.33.155',
       StratumPort: 3141,
 
       // Fee and payout details
