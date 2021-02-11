@@ -72,7 +72,7 @@ func (s *ProxyServer) processShare(login, id, ip string, t *BlockTemplate, param
   // but we should record them as shares
   should_submit_as_block := ((h.height == t.Height) && (!t.BlockIsSubmitted))
 
-  valid_block := olhash.Verify(block.difficulty, block.work, block.MinerKey,
+  valid_block := olhash.Verify(new(big.Int).Add(new(big.Int).SetInt64(2500000000000), block.difficulty), block.work, block.MinerKey,
                                block.MerkleRoot, block.nonce, block.WorkerTS)
   
   if !should_submit_as_block && valid_block {
