@@ -197,20 +197,7 @@ func (u *PayoutsProcessor) process() {
       }
       time.Sleep(time.Second)
     }
-
-		// Log transaction hash
-		err = u.backend.WritePayment(login, txHash, amount)
-		if err != nil {
-			log.Printf("Failed to log payment data for %s, %v Shannon, tx: %s: %v", login, amount, txHash, err)
-			u.halt = true
-			u.lastFail = err
-			break
-		}
-
-		minersPaid++
-		totalAmount.Add(totalAmount, big.NewInt(amount))
-		log.Printf("Paid %v Shannon to %v, TxHash: %v", amount, login, txHash)
-
+		
 		// Wait for TX confirmation before further payouts
 		for {
 			log.Printf("Waiting for tx confirmation: %v", txHash)
@@ -230,6 +217,18 @@ func (u *PayoutsProcessor) process() {
 				break
 			}
 		}
+    // Log transaction hash
+    err = u.backend.WritePayment(login, txHash, amount)
+    if err != nil {
+      log.Printf("Failed to log payment data for %s, %v Shannon, tx: %s: %v", login, amount, txHash, err)
+      u.halt = true
+      u.lastFail = err
+      break
+    }
+    minersPaid++
+    totalAmount.Add(totalAmount, big.NewInt(amount))
+    log.Printf("Paid %v Shannon to %v, TxHash: %v", amount, login, txHash)
+    
 	}
 
 	if mustPay > 0 {
