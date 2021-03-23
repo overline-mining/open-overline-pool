@@ -205,7 +205,7 @@ func matchCandidate(block *rpc.BcBlockReply, candidate *storage.BlockData) bool 
 func (u *BlockUnlocker) handleBlock(block *rpc.BcBlockReply, candidate *storage.BlockData) error {
 	correctHeight := int64(block.Height)
 	candidate.Height = correctHeight
-	reward := getConstReward(candidate.Height)
+	reward := getConstReward(block, candidate.Height)
 
 	// Add TX fees
 	extraTxReward, err := u.getExtraRewardForTx(block)
@@ -498,8 +498,8 @@ func weiToShannonInt64(wei *big.Rat) int64 {
 	return value
 }
 
-func getConstReward(height int64) *big.Int {
-	return new(big.Int).Set(afterTargetReward)
+func getConstReward(block *rpc.BcBlockReply, height int64) *big.Int {
+	return new(big.Int).Mul(new(big.Int).Set(afterTargetReward), new(big.Int).SetInt64(int64(block.NrgGrant/2.0)))
 }
 
 func getRewardForUncle(height int64) *big.Int {

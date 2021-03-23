@@ -1,5 +1,5 @@
 {
-	"threads": 2,
+	"threads": 32,
 	"coin": "ol",
 	"name": "main",
 
@@ -11,7 +11,7 @@
 		"behindReverseProxy": false,
 		"blockRefreshInterval": "120ms",
 		"stateUpdateInterval": "3s",
-                "difficulty": 310000000000000,
+                "difficulty": 315000000000000,
 		"hashrateExpiration": "3h",
 
 		"healthCheck": true,
@@ -54,7 +54,7 @@
 		{
 			"name": "main",
       "url": "http://overline:3000/rpc",
-      "urlMining": "http://overline:3001",
+      "urlMining": "http://localhost:3001",
       "scookie": "POOL_NODE_SCOOKIE",
 			"timeout": "10s"
 		},
