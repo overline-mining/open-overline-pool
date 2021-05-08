@@ -32,7 +32,7 @@ type UnlockerConfig struct {
 
 const minDepth = 16
 
-var afterTargetReward = math.MustParseBig256("2000000000000000000")
+var afterTargetReward = math.MustParseBig256("1000000000000000000")
 
 // Donate 10% from pool fees to developers
 const donationFee = 10.0
@@ -501,7 +501,7 @@ func weiToShannonInt64(wei *big.Rat) int64 {
 }
 
 func getConstReward(block *rpc.BcBlockReply, height int64) *big.Int {
-	return new(big.Int).Mul(new(big.Int).Set(afterTargetReward), new(big.Int).SetInt64(int64(block.NrgGrant/2.0)))
+	return new(big.Int).Mul(new(big.Int).Set(afterTargetReward), new(big.Int).SetInt64(int64(block.NrgGrant)))
 }
 
 func getRewardForUncle(height int64) *big.Int {
