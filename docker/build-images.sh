@@ -5,7 +5,7 @@ POOL_TARBALL_PATH=../..
 POOL_TARBALL_NAME=open-overline-pool.tar.gz
 cp ${POOL_TARBALL_PATH}/${POOL_TARBALL_NAME} ./${POOL_TARBALL_NAME}
 
-docker pull blockcollider/bcnode
+docker pull blockcollider/bcnode:latest
 
 docker build -t local/bcnode -f Dockerfile.bcnode .
 #docker build --build-arg POOL_TARBALL_NAME=${POOL_TARBALL_NAME} -t local/open-overline-pool-api -f Dockerfile.api .

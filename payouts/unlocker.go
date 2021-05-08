@@ -208,6 +208,7 @@ func (u *BlockUnlocker) handleBlock(block *rpc.BcBlockReply, candidate *storage.
 	reward := getConstReward(block, candidate.Height)
 
 	// Add TX fees
+  /*
 	extraTxReward, err := u.getExtraRewardForTx(block)
 	if err != nil {
 		return fmt.Errorf("Error while fetching TX receipt: %v", err)
@@ -217,6 +218,7 @@ func (u *BlockUnlocker) handleBlock(block *rpc.BcBlockReply, candidate *storage.
 	} else {
 		reward.Add(reward, extraTxReward)
 	}
+  */
 
   /* Bc handles uncles very differently
 	// Add reward for including uncles
