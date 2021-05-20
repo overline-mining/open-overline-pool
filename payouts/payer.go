@@ -10,9 +10,9 @@ import (
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
 
-	"github.com/lgray/open-overline-pool/rpc"
-	"github.com/lgray/open-overline-pool/storage"
-	"github.com/lgray/open-overline-pool/util"
+	"github.com/zano-mining/open-zano-pool/rpc"
+	"github.com/zano-mining/open-zano-pool/storage"
+	"github.com/zano-mining/open-zano-pool/util"
 )
 
 const txCheckInterval = 5 * time.Second
@@ -22,9 +22,7 @@ type PayoutsConfig struct {
 	RequirePeers int64  `json:"requirePeers"`
 	Interval     string `json:"interval"`
 	Daemon       string `json:"daemon"`
-  SCookie      string `json:"scookie"`
 	Timeout      string `json:"timeout"`
-  PrivKeyEnv   string `json:"privateKey"`
 	Address      string `json:"address"`
 	Gas          string `json:"gas"`
 	GasPrice     string `json:"gasPrice"`
@@ -54,8 +52,7 @@ type PayoutsProcessor struct {
 
 func NewPayoutsProcessor(cfg *PayoutsConfig, backend *storage.RedisClient) *PayoutsProcessor {
 	u := &PayoutsProcessor{config: cfg, backend: backend}
-  SCookie := os.Getenv(cfg.SCookie)
-	u.rpc = rpc.NewRPCClient("PayoutsProcessor", cfg.Daemon, SCookie, cfg.Timeout)
+	u.rpc = rpc.NewRPCClient("PayoutsProcessor", cfg.Daemon, cfg.Timeout)
 	return u
 }
 
@@ -141,9 +138,7 @@ func (u *PayoutsProcessor) process() {
 		}
 
 		// Check if we have enough funds
-    poolAddress := os.Getenv(u.config.Address)
-		poolBalance, err := u.rpc.GetBalance(poolAddress)
-    log.Println("got pool balance -> ", poolBalance)
+		poolBalance, err := u.rpc.GetBalance(u.config.Address)
 		if err != nil {
 			u.halt = true
 			u.lastFail = err
@@ -176,8 +171,8 @@ func (u *PayoutsProcessor) process() {
 			break
 		}
 
-		value := amountInWei.String()
-		txHash, err := u.rpc.SendTransaction(poolAddress, login,  value, os.Getenv(u.config.PrivKeyEnv))
+		value := hexutil.EncodeBig(amountInWei)
+		txHash, err := u.rpc.SendTransaction(u.config.Address, login, u.config.GasHex(), u.config.GasPriceHex(), value, u.config.AutoGas)
 		if err != nil {
 			log.Printf("Failed to send payment to %s, %v Shannon: %v. Check outgoing tx for %s in block explorer and docs/PAYOUTS.md",
 				login, amount, err, login)
@@ -186,18 +181,19 @@ func (u *PayoutsProcessor) process() {
 			break
 		}
 
-    for len(txHash) == 0 {
-      txHash, err = u.rpc.SendTransaction(poolAddress, login,  value, os.Getenv(u.config.PrivKeyEnv))
-      if err != nil {
-        log.Printf("Failed to send payment to %s, %v Shannon: %v. Check outgoing tx for %s in block explorer and docs/PAYOUTS.md",
-          login, amount, err, login)
-        u.halt = true
-        u.lastFail = err
-        break
-      }
-      time.Sleep(time.Second)
-    }
-		
+		// Log transaction hash
+		err = u.backend.WritePayment(login, txHash, amount)
+		if err != nil {
+			log.Printf("Failed to log payment data for %s, %v Shannon, tx: %s: %v", login, amount, txHash, err)
+			u.halt = true
+			u.lastFail = err
+			break
+		}
+
+		minersPaid++
+		totalAmount.Add(totalAmount, big.NewInt(amount))
+		log.Printf("Paid %v Shannon to %v, TxHash: %v", amount, login, txHash)
+
 		// Wait for TX confirmation before further payouts
 		for {
 			log.Printf("Waiting for tx confirmation: %v", txHash)
@@ -217,18 +213,6 @@ func (u *PayoutsProcessor) process() {
 				break
 			}
 		}
-    // Log transaction hash
-    err = u.backend.WritePayment(login, txHash, amount)
-    if err != nil {
-      log.Printf("Failed to log payment data for %s, %v Shannon, tx: %s: %v", login, amount, txHash, err)
-      u.halt = true
-      u.lastFail = err
-      break
-    }
-    minersPaid++
-    totalAmount.Add(totalAmount, big.NewInt(amount))
-    log.Printf("Paid %v Shannon to %v, TxHash: %v", amount, login, txHash)
-    
 	}
 
 	if mustPay > 0 {
@@ -244,24 +228,24 @@ func (u *PayoutsProcessor) process() {
 }
 
 func (self PayoutsProcessor) isUnlockedAccount() bool {
-	//_, err := self.rpc.Sign(self.config.Address, "0x0")
-	//if err != nil {
-	//	log.Println("Unable to process payouts:", err)
-	//	return false
-  //}
+	_, err := self.rpc.Sign(self.config.Address, "0x0")
+	if err != nil {
+		log.Println("Unable to process payouts:", err)
+		return false
+	}
 	return true
 }
 
 func (self PayoutsProcessor) checkPeers() bool {
-	//n, err := self.rpc.GetPeerCount()
-	//if err != nil {
-	//	log.Println("Unable to start payouts, failed to retrieve number of peers from node:", err)
-	//	return false
-	//}
-	//if n < self.config.RequirePeers {
-	//	log.Println("Unable to start payouts, number of peers on a node is less than required", self.config.RequirePeers)
-	//	return false
-	//}
+	n, err := self.rpc.GetPeerCount()
+	if err != nil {
+		log.Println("Unable to start payouts, failed to retrieve number of peers from node:", err)
+		return false
+	}
+	if n < self.config.RequirePeers {
+		log.Println("Unable to start payouts, number of peers on a node is less than required", self.config.RequirePeers)
+		return false
+	}
 	return true
 }
 

@@ -9,8 +9,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/lgray/open-overline-pool/storage"
-	"github.com/lgray/open-overline-pool/util"
+	"github.com/zano-mining/open-zano-pool/storage"
+	"github.com/zano-mining/open-zano-pool/util"
 )
 
 type Config struct {

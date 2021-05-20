@@ -5,8 +5,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/lgray/open-overline-pool/rpc"
-	"github.com/lgray/open-overline-pool/storage"
+	"github.com/zano-mining/open-zano-pool/rpc"
+	"github.com/zano-mining/open-zano-pool/storage"
 )
 
 func TestMain(m *testing.M) {

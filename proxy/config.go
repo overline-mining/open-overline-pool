@@ -1,10 +1,10 @@
 package proxy
 
 import (
-	"github.com/lgray/open-overline-pool/api"
-	"github.com/lgray/open-overline-pool/payouts"
-	"github.com/lgray/open-overline-pool/policy"
-	"github.com/lgray/open-overline-pool/storage"
+	"github.com/zano-mining/open-zano-pool/api"
+	"github.com/zano-mining/open-zano-pool/payouts"
+	"github.com/zano-mining/open-zano-pool/policy"
+	"github.com/zano-mining/open-zano-pool/storage"
 )
 
 type Config struct {
@@ -29,16 +29,15 @@ type Config struct {
 }
 
 type Proxy struct {
-	Enabled              bool    `json:"enabled"`
-	Listen               string  `json:"listen"`
-	LimitHeadersSize     int     `json:"limitHeadersSize"`
-	LimitBodySize        int64   `json:"limitBodySize"`
-	BehindReverseProxy   bool    `json:"behindReverseProxy"`
-	BlockRefreshInterval string  `json:"blockRefreshInterval"`
-	Difficulty           int64   `json:"difficulty"`
-  Diff2HashRate        float64 `json:"diffToHashRate"`
-	StateUpdateInterval  string  `json:"stateUpdateInterval"`
-	HashrateExpiration   string  `json:"hashrateExpiration"`
+	Enabled              bool   `json:"enabled"`
+	Listen               string `json:"listen"`
+	LimitHeadersSize     int    `json:"limitHeadersSize"`
+	LimitBodySize        int64  `json:"limitBodySize"`
+	BehindReverseProxy   bool   `json:"behindReverseProxy"`
+	BlockRefreshInterval string `json:"blockRefreshInterval"`
+	Difficulty           int64  `json:"difficulty"`
+	StateUpdateInterval  string `json:"stateUpdateInterval"`
+	HashrateExpiration   string `json:"hashrateExpiration"`
 
 	Policy policy.Config `json:"policy"`
 
@@ -59,9 +58,7 @@ type Stratum struct {
 }
 
 type Upstream struct {
-	Name      string `json:"name"`
-	Url       string `json:"url"`
-	UrlMining string `json:"urlMining"`
-        SCookie   string `json:"scookie"`
-	Timeout   string `json:"timeout"`
+	Name    string `json:"name"`
+	Url     string `json:"url"`
+	Timeout string `json:"timeout"`
 }

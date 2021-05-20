@@ -5,13 +5,12 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"errors"
-	"strconv"
 	"io"
 	"log"
 	"net"
 	"time"
 
-	"github.com/lgray/open-overline-pool/util"
+	"github.com/zano-mining/open-zano-pool/util"
 )
 
 const (
@@ -197,7 +196,7 @@ func (s *ProxyServer) broadcastNewJobs() {
 	if t == nil || len(t.Header) == 0 || s.isSick() {
 		return
 	}
-	reply := []string{t.Header, t.Seed, s.diff, strconv.FormatUint(t.Height, 10), t.MinerKey, t.WorkId, strconv.FormatInt(t.Timestamp, 10)}
+	reply := []string{t.Header, t.Seed, s.diff}
 
 	s.sessionsMu.RLock()
 	defer s.sessionsMu.RUnlock()

@@ -4,15 +4,14 @@ import (
 	"log"
 	"regexp"
 	"strings"
-	"strconv"
 
-	"github.com/lgray/open-overline-pool/rpc"
-	"github.com/lgray/open-overline-pool/util"
+	"github.com/zano-mining/open-zano-pool/rpc"
+	"github.com/zano-mining/open-zano-pool/util"
 )
 
 // Allow only lowercase hexadecimal with 0x prefix
-var noncePattern = regexp.MustCompile("[0-9]+$")
-var hashPattern = regexp.MustCompile("[0-9a-f]{64}$")
+var noncePattern = regexp.MustCompile("^0x[0-9a-f]{16}$")
+var hashPattern = regexp.MustCompile("^0x[0-9a-f]{64}$")
 var workerPattern = regexp.MustCompile("^[0-9a-zA-Z-_]{1,8}$")
 
 // Stratum
@@ -39,7 +38,7 @@ func (s *ProxyServer) handleGetWorkRPC(cs *Session) ([]string, *ErrorReply) {
 	if t == nil || len(t.Header) == 0 || s.isSick() {
 		return nil, &ErrorReply{Code: 0, Message: "Work not ready"}
 	}
-	return []string{t.Header, t.Seed, s.diff, strconv.FormatUint(t.Height, 10), t.MinerKey, t.WorkId, strconv.FormatInt(t.Timestamp, 10)}, nil
+	return []string{t.Header, t.Seed, s.diff}, nil
 }
 
 // Stratum
@@ -58,13 +57,13 @@ func (s *ProxyServer) handleSubmitRPC(cs *Session, login, id string, params []st
 	if !workerPattern.MatchString(id) {
 		id = "0"
 	}
-	if len(params) != 4 {
+	if len(params) != 3 {
 		s.policy.ApplyMalformedPolicy(cs.ip)
 		log.Printf("Malformed params from %s@%s %v", login, cs.ip, params)
 		return false, &ErrorReply{Code: -1, Message: "Invalid params"}
 	}
 
-	if !noncePattern.MatchString(params[0]) || !noncePattern.MatchString(params[1]) || !noncePattern.MatchString(params[2]) {
+	if !noncePattern.MatchString(params[0]) || !hashPattern.MatchString(params[1]) || !hashPattern.MatchString(params[2]) {
 		s.policy.ApplyMalformedPolicy(cs.ip)
 		log.Printf("Malformed PoW result from %s@%s %v", login, cs.ip, params)
 		return false, &ErrorReply{Code: -1, Message: "Malformed PoW result"}

@@ -8,7 +8,7 @@ export function formatHashrate(params/*, hash*/) {
     hashrate = hashrate / 1000;
     i++;
   }
-  return hashrate.toFixed(2) + ' ' + units[i] + '/s';
+  return hashrate.toFixed(2) + ' ' + units[i];
 }
 
 export default buildHelper(formatHashrate);

@@ -7,30 +7,23 @@ import (
 	"net"
 	"net/http"
 	"strings"
-	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
-  "os"
+
 	"github.com/gorilla/mux"
 
-	"github.com/lgray/open-overline-pool/policy"
-	"github.com/lgray/open-overline-pool/rpc"
-	"github.com/lgray/open-overline-pool/storage"
-	"github.com/lgray/open-overline-pool/util"
+	"github.com/zano-mining/open-zano-pool/policy"
+	"github.com/zano-mining/open-zano-pool/rpc"
+	"github.com/zano-mining/open-zano-pool/storage"
+	"github.com/zano-mining/open-zano-pool/util"
 )
-
-type heightCompletedPair struct {
-  height      uint64
-  isCompleted bool
-}
 
 type ProxyServer struct {
 	config             *Config
 	blockTemplate      atomic.Value
 	upstream           int32
 	upstreams          []*rpc.RPCClient
-	mining_upstreams   []*rpc.RPCClient
 	backend            *storage.RedisClient
 	diff               string
 	policy             *policy.PolicyServer
@@ -41,7 +34,6 @@ type ProxyServer struct {
 	sessionsMu sync.RWMutex
 	sessions   map[*Session]struct{}
 	timeout    time.Duration
-
 }
 
 type Session struct {
@@ -61,18 +53,14 @@ func NewProxy(cfg *Config, backend *storage.RedisClient) *ProxyServer {
 	policy := policy.Start(&cfg.Proxy.Policy, backend)
 
 	proxy := &ProxyServer{config: cfg, backend: backend, policy: policy}
-	proxy.diff = strconv.FormatInt(cfg.Proxy.Difficulty, 10)
+	proxy.diff = util.GetTargetHex(cfg.Proxy.Difficulty)
 
 	proxy.upstreams = make([]*rpc.RPCClient, len(cfg.Upstream))
-	proxy.mining_upstreams = make([]*rpc.RPCClient, len(cfg.Upstream))
 	for i, v := range cfg.Upstream {
-    SCookie := os.Getenv(v.SCookie)
-		proxy.upstreams[i] = rpc.NewRPCClient(v.Name, v.Url, SCookie, v.Timeout)
-		proxy.mining_upstreams[i] = rpc.NewRPCClient(v.Name, v.UrlMining, "", v.Timeout)
-		log.Printf("Upstream: %s => %s (%s)", v.Name, v.Url, SCookie)
+		proxy.upstreams[i] = rpc.NewRPCClient(v.Name, v.Url, v.Timeout)
+		log.Printf("Upstream: %s => %s", v.Name, v.Url)
 	}
 	log.Printf("Default upstream: %s => %s", proxy.rpc().Name, proxy.rpc().Url)
-	log.Printf("Default mining upstream: %s => %s", proxy.miningRpc().Name, proxy.miningRpc().Url)
 
 	if cfg.Proxy.Stratum.Enabled {
 		proxy.sessions = make(map[*Session]struct{})
@@ -156,16 +144,11 @@ func (s *ProxyServer) rpc() *rpc.RPCClient {
 	return s.upstreams[i]
 }
 
-func (s *ProxyServer) miningRpc() *rpc.RPCClient {
-     i := atomic.LoadInt32(&s.upstream)
-     return s.mining_upstreams[i]
-}
-
 func (s *ProxyServer) checkUpstreams() {
 	candidate := int32(0)
 	backup := false
 
-	for i, v := range s.mining_upstreams {
+	for i, v := range s.upstreams {
 		if v.Check() && !backup {
 			candidate = int32(i)
 			backup = true

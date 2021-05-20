@@ -5,109 +5,22 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"math/big"
 	"net/http"
 	"strconv"
 	"strings"
 	"sync"
-	"log"
+
 	"github.com/ethereum/go-ethereum/common/hexutil"
 
-	"github.com/lgray/open-overline-pool/util"
+	"github.com/zano-mining/open-zano-pool/util"
 )
-
-type BcRpcError struct {
-  Details string `json:"details"`
-}
-
-type BcTransactionResponse struct {
-  Status uint64 `json:"status"`
-  TxHash string `json:"txHash"`
-  Error  string `json:"error"`
-}
-
-type BcTxOutPoint struct {
-  Value string `json:"value"`
-  Hash  string `json:"hash"`
-  Index int64  `json:"index"`
-}
-
-type BcTxInput struct {
-  OutPoint BcTxOutPoint `json:"outPoint"`
-  ScriptLength uint64 `json:"scriptLength"`
-  InputScript  string `json:"inputScript"`
-}
-
-type BcTxOutput struct {
-  Value        string `json:"value"`
-  Unit         string `json:"unit"`
-  ScriptLength uint64 `json:"scriptLength"`
-  OutputScript string `json:"outputScript"`
-}
-
-type BcTransaction  struct {
-  Version     uint64 `json:"version"`
-  Nonce       string `json:"nonce"`
-  Hash        string `json:"hash"`
-  Overline    string `json:"overline"`
-  NinCount    uint64 `json:"ninCount"`
-  NoutCount   uint64 `json:"noutCount"`
-  InputsList  []BcTxInput  `json:"inputsList"`
-  OutputsList []BcTxOutput `json:"outputsList"`
-  LockTime    uint64 `json:"lockTime"`
-}
-
-type BcChildBlockHeader struct {
-  Blockchain   string `json:"blockchain"`
-  Hash         string `json:"hash"`
-  PreviousHash string `json:"previousHash"`
-  Timestamp    uint64 `json:"timestamp"`
-  Height       uint64 `json:"height"`
-  MerkleRoot   string `json:"merkleRoot"`
-  BlockchainConfirmationsInParentCount uint64 `json:"blockchainConfirmationsInParentCount"`
-  MarkedTxsList []string `json:"-"`// fill out later!
-  MarkedTxCount uint64 `json:"markedTxCount"`
-}
-
-type BcChildBlockHeaders struct {
-  BtcList []BcChildBlockHeader `json:"btcList"`
-  EthList []BcChildBlockHeader `json:"ethList"`
-  LskList []BcChildBlockHeader `json:"lskList"`
-  NeoList []BcChildBlockHeader `json:"neoList"`
-  WavList []BcChildBlockHeader `json:"wavList"`
-  BlockchainFingerprintsRoot string `json:"blockchainFingerprintsRoot"`
-}
-
-type BcBlockReply struct {
-  Hash          string `json:"hash"`
-  PreviousHash  string `json:"previousHash"`
-  Version       uint64 `json:"version"`
-  SchemaVersion uint64 `json:"schemaVersion"`
-  Height        uint64 `json:"height"`
-  Difficulty    string `json:"difficulty"`
-  Timestamp     uint64 `json:"timestamp"`
-  MerkleRoot    string `json:"merkleRoot"`
-  ChainRoot     string `json:"chainRoot"`
-  Distance      string `json:"distance"`
-  TotalDistance string `json:"totalDistance"`
-  Nonce         string `json:"nonce"`
-  NrgGrant      float64 `json:"nrgGrant"`
-  EmblemWeight  float64 `json:"emblemWeight"`
-  EmblemChainFingerprintRoot string `json:"emblemChainFingerprintRoot"`
-  EmblemChainAddress string `json:"emblemChainAddress"`
-  TxCount       uint64 `json:"txCount"`
-  TxsList       []BcTransaction `json:"txsList"`
-  TxFeeBase     uint64 `json:"txFeeBase"`
-  TxDistanceSumLimit uint64 `json:"txDistanceSumLimit"`
-  BlockchainHeadersCount uint64 `json:"blockchainHeadersCount"`
-  BlockchainHeaders BcChildBlockHeaders `json:"blockchainHeaders"`
-}
 
 type RPCClient struct {
 	sync.RWMutex
 	Url         string
 	Name        string
-  SCookie     string
 	sick        bool
 	sickRate    int
 	successRate int
@@ -115,35 +28,31 @@ type RPCClient struct {
 }
 
 type GetBlockReply struct {
-	Number       json.Number   `json:"height,Number"`
+	Number       string   `json:"number"`
 	Hash         string   `json:"hash"`
 	Nonce        string   `json:"nonce"`
-        Distance     string   `json:"distance"`
 	Miner        string   `json:"miner"`
 	Difficulty   string   `json:"difficulty"`
-	GasLimit     string   
-	GasUsed      string   
-	Transactions []Tx     `json:"txsList"`
-	Uncles       []string 
+	GasLimit     string   `json:"gasLimit"`
+	GasUsed      string   `json:"gasUsed"`
+	Transactions []Tx     `json:"transactions"`
+	Uncles       []string `json:"uncles"`
 	// https://github.com/ethereum/EIPs/issues/95
-	SealFields []string 
+	SealFields []string `json:"sealFields"`
 }
 
 type GetBlockReplyPart struct {
-	Number     json.Number `json:"height"`
+	Number     string `json:"number"`
 	Difficulty string `json:"difficulty"`
-	Hash       string `json:"hash"`
-	Distance   string `json:"distance"`
 }
 
 const receiptStatusSuccessful = "0x1"
 
 type TxReceipt struct {
-	TxHash    string `json:"hash"`
-	GasUsed   string `json:"overline"`
-  Nonce     string `json:"nonce"`
-	BlockHash string 
-	Status    string `json:"nonce"`
+	TxHash    string `json:"transactionHash"`
+	GasUsed   string `json:"gasUsed"`
+	BlockHash string `json:"blockHash"`
+	Status    string `json:"status"`
 }
 
 func (r *TxReceipt) Confirmed() bool {
@@ -152,14 +61,16 @@ func (r *TxReceipt) Confirmed() bool {
 
 // Use with previous method
 func (r *TxReceipt) Successful() bool {
-	return len(r.TxHash) > 0
+	if len(r.Status) > 0 {
+		return r.Status == receiptStatusSuccessful
+	}
+	return true
 }
 
 type Tx struct {
-	Gas      string
-	GasPrice string 
+	Gas      string `json:"gas"`
+	GasPrice string `json:"gasPrice"`
 	Hash     string `json:"hash"`
-  Nonce    string `json:"nonce"`
 }
 
 type JSONRpcResp struct {
@@ -168,8 +79,8 @@ type JSONRpcResp struct {
 	Error  map[string]interface{} `json:"error"`
 }
 
-func NewRPCClient(name, url, scookie, timeout string) *RPCClient {
-	rpcClient := &RPCClient{Name: name, Url: url, SCookie: scookie}
+func NewRPCClient(name, url, timeout string) *RPCClient {
+	rpcClient := &RPCClient{Name: name, Url: url}
 	timeoutIntv := util.MustParseDuration(timeout)
 	rpcClient.client = &http.Client{
 		Timeout: timeoutIntv,
@@ -178,7 +89,7 @@ func NewRPCClient(name, url, scookie, timeout string) *RPCClient {
 }
 
 func (r *RPCClient) GetWork() ([]string, error) {
-	rpcResp, err := r.doPost(r.Url, "ol_getWork", []string{}) // fixme!
+	rpcResp, err := r.doPost(r.Url, "eth_getWork", []string{})
 	if err != nil {
 		return nil, err
 	}
@@ -188,7 +99,7 @@ func (r *RPCClient) GetWork() ([]string, error) {
 }
 
 func (r *RPCClient) GetLatestBlock() (*GetBlockReplyPart, error) {
-	rpcResp, err := r.doPost(r.Url, "getLatestBlock", []string{})
+	rpcResp, err := r.doPost(r.Url, "eth_getBlockByNumber", []interface{}{"latest", false})
 	if err != nil {
 		return nil, err
 	}
@@ -200,28 +111,28 @@ func (r *RPCClient) GetLatestBlock() (*GetBlockReplyPart, error) {
 	return nil, nil
 }
 
-func (r *RPCClient) GetBlockByHeight(height int64) (*BcBlockReply, error) {
-	params := []string{strconv.FormatInt(height, 10)}
-	return r.getBlockBy("getBlockHeight", params)
+func (r *RPCClient) GetBlockByHeight(height int64) (*GetBlockReply, error) {
+	params := []interface{}{fmt.Sprintf("0x%x", height), true}
+	return r.getBlockBy("eth_getBlockByNumber", params)
 }
 
-func (r *RPCClient) GetBlockByHash(hash string) (*BcBlockReply, error) {
-	params := []string{hash}
-	return r.getBlockBy("getBlockHash", params)
+func (r *RPCClient) GetBlockByHash(hash string) (*GetBlockReply, error) {
+	params := []interface{}{hash, true}
+	return r.getBlockBy("eth_getBlockByHash", params)
 }
 
-func (r *RPCClient) GetUncleByBlockNumberAndIndex(height int64, index int) (*BcBlockReply, error) {
-	params := []string{strconv.FormatInt(height, 10), strconv.FormatInt(int64(index), 10)}
-	return r.getBlockBy("ol_getUncleByBlockNumberAndIndex", params)
+func (r *RPCClient) GetUncleByBlockNumberAndIndex(height int64, index int) (*GetBlockReply, error) {
+	params := []interface{}{fmt.Sprintf("0x%x", height), fmt.Sprintf("0x%x", index)}
+	return r.getBlockBy("eth_getUncleByBlockNumberAndIndex", params)
 }
 
-func (r *RPCClient) getBlockBy(method string, params []string) (*BcBlockReply, error) {
+func (r *RPCClient) getBlockBy(method string, params []interface{}) (*GetBlockReply, error) {
 	rpcResp, err := r.doPost(r.Url, method, params)
 	if err != nil {
 		return nil, err
 	}
 	if rpcResp.Result != nil {
-		var reply *BcBlockReply
+		var reply *GetBlockReply
 		err = json.Unmarshal(*rpcResp.Result, &reply)
 		return reply, err
 	}
@@ -229,24 +140,20 @@ func (r *RPCClient) getBlockBy(method string, params []string) (*BcBlockReply, e
 }
 
 func (r *RPCClient) GetTxReceipt(hash string) (*TxReceipt, error) {
-	rpcResp, err := r.doPost(r.Url, "getBlockByTx", []string{hash})
-  if err != nil {
+	rpcResp, err := r.doPost(r.Url, "eth_getTransactionReceipt", []string{hash})
+	if err != nil {
 		return nil, err
 	}
 	if rpcResp.Result != nil {
-		var reply *BcBlockReply
+		var reply *TxReceipt
 		err = json.Unmarshal(*rpcResp.Result, &reply)
-    out := new(TxReceipt)
-    out.BlockHash = reply.Hash
-    out.TxHash = hash
-    log.Println("got rpc back from bcnode", out.BlockHash, out.TxHash, err)
-		return out, err
+		return reply, err
 	}
 	return nil, nil
 }
 
 func (r *RPCClient) SubmitBlock(params []string) (bool, error) {
-	rpcResp, err := r.doPost(r.Url, "ol_submitWork", params)
+	rpcResp, err := r.doPost(r.Url, "eth_submitWork", params)
 	if err != nil {
 		return false, err
 	}
@@ -255,31 +162,22 @@ func (r *RPCClient) SubmitBlock(params []string) (bool, error) {
 	return reply, err
 }
 
-type BalanceReply struct {
-  Confirmed string `json:"confirmed"`
-  Unconfirmed string `json:"unconfirmed"`
-  Collateralized string `json:"collateralized"`
-  Unlockable string `json:"unlockable"`
-}
-
 func (r *RPCClient) GetBalance(address string) (*big.Int, error) {
-	rpcResp, err := r.doPost(r.Url, "getBalance", []string{address})
+	rpcResp, err := r.doPost(r.Url, "eth_getBalance", []string{address, "latest"})
 	if err != nil {
 		return nil, err
 	}
-	var reply BalanceReply
+	var reply string
 	err = json.Unmarshal(*rpcResp.Result, &reply)
 	if err != nil {
 		return nil, err
 	}
-  amountInNRG := util.String2Big(reply.Confirmed)
-  amountInWei := new(big.Int).Mul(amountInNRG, util.Ether)
-	return amountInWei, err
+	return util.String2Big(reply), err
 }
 
 func (r *RPCClient) Sign(from string, s string) (string, error) {
 	hash := sha256.Sum256([]byte(s))
-	rpcResp, err := r.doPost(r.Url, "ol_sign", []string{from, hexutil.Encode(hash[:])})
+	rpcResp, err := r.doPost(r.Url, "eth_sign", []string{from, hexutil.Encode(hash[:])})
 	var reply string
 	if err != nil {
 		return reply, err
@@ -307,46 +205,44 @@ func (r *RPCClient) GetPeerCount() (int64, error) {
 	return strconv.ParseInt(strings.Replace(reply, "0x", "", -1), 16, 64)
 }
 
-func (r *RPCClient) SendTransaction(from, to, valueInWei, pkey string) (string, error) {  
-  etherString := util.Ether.String()
-  valueInNRG, _ := new(big.Rat).SetString(valueInWei + "/" + etherString)
-  log.Println("constructed value in NRG -> ", valueInNRG.FloatString(18))
-	params := []string{from, to, valueInNRG.FloatString(18), "0", pkey}
-
-  rpcResp, err := r.doPost(r.Url, "newTx", params)
-	var reply BcTransactionResponse
+func (r *RPCClient) SendTransaction(from, to, gas, gasPrice, value string, autoGas bool) (string, error) {
+	params := map[string]string{
+		"from":  from,
+		"to":    to,
+		"value": value,
+	}
+	if !autoGas {
+		params["gas"] = gas
+		params["gasPrice"] = gasPrice
+	}
+	rpcResp, err := r.doPost(r.Url, "eth_sendTransaction", []interface{}{params})
+	var reply string
 	if err != nil {
-		return reply.Error, err
+		return reply, err
 	}
 	err = json.Unmarshal(*rpcResp.Result, &reply)
 	if err != nil {
-		return reply.Error, err
+		return reply, err
 	}
-
-  log.Println("tx reply -> ", reply.TxHash)
-  
-	if util.IsZeroHash(reply.TxHash) {
+	/* There is an inconsistence in a "standard". Geth returns error if it can't unlock signer account,
+	 * but Parity returns zero hash 0x000... if it can't send tx, so we must handle this case.
+	 * https://github.com/ethereum/wiki/wiki/JSON-RPC#returns-22
+	 */
+	if util.IsZeroHash(reply) {
 		err = errors.New("transaction is not yet available")
 	}
-	return reply.TxHash, err
+	return reply, err
 }
 
-func (r *RPCClient) doPost(url string, method string, params []string) (*JSONRpcResp, error) {
+func (r *RPCClient) doPost(url string, method string, params interface{}) (*JSONRpcResp, error) {
 	jsonReq := map[string]interface{}{"jsonrpc": "2.0", "method": method, "params": params, "id": 0}
 	data, _ := json.Marshal(jsonReq)
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(data))
-	req.SetBasicAuth("", r.SCookie)
 	req.Header.Set("Content-Length", (string)(len(data)))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
 
-  if r.Name == "BlockUnlocker" {
-    log.Println(r.Name)
-    log.Println(jsonReq)
-    log.Println(req)
-  }
-  
 	resp, err := r.client.Do(req)
 	if err != nil {
 		r.markSick()
@@ -361,9 +257,8 @@ func (r *RPCClient) doPost(url string, method string, params []string) (*JSONRpc
 		return nil, err
 	}
 	if rpcResp.Error != nil {
-    //log.Println(rpcResp)
 		r.markSick()
-		return nil, errors.New(rpcResp.Error["details"].(string))
+		return nil, errors.New(rpcResp.Error["message"].(string))
 	}
 	return rpcResp, err
 }

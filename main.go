@@ -13,10 +13,10 @@ import (
 
 	"github.com/yvasiyarov/gorelic"
 
-	"github.com/lgray/open-overline-pool/api"
-	"github.com/lgray/open-overline-pool/payouts"
-	"github.com/lgray/open-overline-pool/proxy"
-	"github.com/lgray/open-overline-pool/storage"
+	"github.com/zano-mining/open-zano-pool/api"
+	"github.com/zano-mining/open-zano-pool/payouts"
+	"github.com/zano-mining/open-zano-pool/proxy"
+	"github.com/zano-mining/open-zano-pool/storage"
 )
 
 var cfg proxy.Config
