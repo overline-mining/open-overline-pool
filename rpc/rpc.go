@@ -114,7 +114,8 @@ func (r *RPCClient) GetWork(miner_address string) ([]string, error) {
   wparams.PosBlock = false
   wparams.PosAmount = 0
   wparams.PosIndex = 0
-	rpcResp, err := r.doPost(r.Url, "getblocktemplate", []interface{}{wparams})
+  fmt.Println(wparams)  
+	rpcResp, err := r.doPost(r.Url, "getblocktemplate", wparams)
 	if err != nil {
 		return nil, err
 	}
