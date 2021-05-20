@@ -27,6 +27,24 @@ type RPCClient struct {
 	client      *http.Client
 }
 
+type WorkRequestParams struct {
+  ExtraText     string   `json:"extra_text"`
+  WalletAddress string   `json:"wallet_address"`
+  StakeAddress  string   `json:"stakeholder_address"`
+  PosBlock      bool     `json:"pos_block"`
+  PosAmount     int      `json:"pos_amount"`
+  PosIndex      int      `json:"pos_index"`
+}
+
+type GetBlockTemplateReply struct {
+  Blob         string   `json:"blocktemplate_blob"`
+  Difficulty   string   `json:"difficulty"`
+  Height       string   `json:"height"`
+  PrevHash     string   `json:"prev_hash"`
+  Seed         string   `json:"seed"`
+  Status       string   `json:"status"`
+}
+
 type GetBlockReply struct {
 	Number       string   `json:"number"`
 	Hash         string   `json:"hash"`
@@ -88,8 +106,15 @@ func NewRPCClient(name, url, timeout string) *RPCClient {
 	return rpcClient
 }
 
-func (r *RPCClient) GetWork() ([]string, error) {
-	rpcResp, err := r.doPost(r.Url, "eth_getWork", []string{})
+func (r *RPCClient) GetWork(miner_address string) ([]string, error) {
+  var wparams WorkRequestParams
+  wparams.ExtraText = "open-zano-pool"
+  wparams.WalletAddress = miner_address
+  wparams.StakeAddress = miner_address
+  wparams.PosBlock = false
+  wparams.PosAmount = 0
+  wparams.PosIndex = 0
+	rpcResp, err := r.doPost(r.Url, "getblocktemplate", []interface{}{wparams})
 	if err != nil {
 		return nil, err
 	}
@@ -264,7 +289,7 @@ func (r *RPCClient) doPost(url string, method string, params interface{}) (*JSON
 }
 
 func (r *RPCClient) Check() bool {
-	_, err := r.GetWork()
+	_, err := r.GetWork("0")
 	if err != nil {
 		return false
 	}

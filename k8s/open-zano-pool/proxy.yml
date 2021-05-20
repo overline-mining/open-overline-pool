@@ -22,6 +22,12 @@ spec:
       containers:
       - name: oovp-test-container
         image: lgray/open-zano-pool-api:latest
+        env:
+        - name: POOL_MINER_KEY
+          valueFrom:
+            secretKeyRef:
+              name: pool-miner-key
+              key: value
         volumeMounts:
         - name: config
           mountPath: "/config"

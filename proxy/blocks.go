@@ -49,7 +49,7 @@ func (b Block) NumberU64() uint64        { return b.number }
 func (s *ProxyServer) fetchBlockTemplate() {
 	r := s.rpc()
 	t := s.currentBlockTemplate()
-	reply, err := r.GetWork()
+	reply, err := r.GetWork(s.config.Proxy.Address)
 	if err != nil {
 		log.Printf("Error while refreshing block template on %s: %s", r.Name, err)
 		return

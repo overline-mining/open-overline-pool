@@ -38,6 +38,7 @@ type Proxy struct {
 	Difficulty           int64  `json:"difficulty"`
 	StateUpdateInterval  string `json:"stateUpdateInterval"`
 	HashrateExpiration   string `json:"hashrateExpiration"`
+  Address              string `json:"address"`
 
 	Policy policy.Config `json:"policy"`
 
