@@ -1,7 +1,5 @@
 FROM ubuntu:20.04 AS builder
 
-ARG POOL_TARBALL_NAME=open-overline-pool.tar.gz
-
 ENV DEBIAN_FRONTEND="noninteractive"
 ENV TZ="Etc/UTC"
     
@@ -22,8 +20,12 @@ RUN apt-get update && \
 
 # Fetch and compile open overline pool
 RUN mkdir -p /var/local/git
-COPY ./${POOL_TARBALL_NAME} /var/local/git/
-RUN cd /var/local/git && \
+
+ARG CACHEBUST=1
+
+RUN git clone https://github.com/zano-mining/open-zano-pool /var/local/git/open-zano-pool \
+    cd /var/local/git/open-zano-pool && make && \
+    cd /var/local/git && \ 
     tar -xzf ${POOL_TARBALL_NAME}
 RUN mkdir -p /artifacts && \
     cp -r /var/local/git/open-overline-pool/www /artifacts/

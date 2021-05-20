@@ -1,6 +1,4 @@
 FROM ubuntu:20.04 AS builder
-
-ARG POOL_TARBALL_NAME=open-overline-pool.tar.gz
   
 # Get basic packages
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -17,13 +15,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Fetch and compile open overline pool
 RUN mkdir -p /var/local/git
-COPY ./${POOL_TARBALL_NAME} /var/local/git/
-RUN cd /var/local/git && \
-    tar -xzf ${POOL_TARBALL_NAME} && \
-    cd open-overline-pool && make
-RUN mkdir -p /artifacts && \
-    cp /var/local/git/open-overline-pool/config.example.json /artifacts/config.json && \
-    cp /var/local/git/open-overline-pool/build/bin/open-overline-pool /artifacts
+
+ARG CACHEBUST=1
+
+RUN git clone https://github.com/zano-mining/open-zano-pool /var/local/git/open-zano-pool \
+    cd /var/local/git/open-zano-pool && make && \
+    mkdir -p /artifacts && \
+    cp /var/local/git/open-zano-pool/config.example.json /artifacts/config.json && \
+    cp /var/local/git/open-zano-pool/build/bin/open-zano-pool /artifacts
 
 # ------------------------------------------------------------------------------
 FROM ubuntu:20.04
@@ -44,6 +43,6 @@ USER pool:pool
 
 WORKDIR /opt/pool
 
-EXPOSE 3141 3142 6283
+EXPOSE 21111 12111 11112
 
 ENTRYPOINT [ "./open-overline-pool" ]
