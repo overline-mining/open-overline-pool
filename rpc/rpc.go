@@ -39,7 +39,7 @@ type WorkRequestParams struct {
 type GetBlockTemplateReply struct {
   Blob         string   `json:"blocktemplate_blob"`
   Difficulty   string   `json:"difficulty"`
-  Height       string   `json:"height"`
+  Height       uint64   `json:"height"`
   PrevHash     string   `json:"prev_hash"`
   Seed         string   `json:"seed"`
   Status       string   `json:"status"`

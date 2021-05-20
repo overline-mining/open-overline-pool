@@ -57,11 +57,11 @@ func (s *ProxyServer) fetchBlockTemplate() {
 		return
 	}
 	diff, _ := new(big.Int).SetString(reply.Difficulty, 10)
-	height, err := strconv.ParseUint(reply.Height, 10, 64)
+	height := reply.Height
 
 	pendingReply := &rpc.GetBlockReplyPart{
 		Difficulty: strconv.FormatInt(s.config.Proxy.Difficulty, 10),
-		Number:     reply.Height,
+		Number:     strconv.FormatUint(reply.Height, 10),
 	}
 
 	newTemplate := BlockTemplate{
