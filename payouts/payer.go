@@ -138,7 +138,8 @@ func (u *PayoutsProcessor) process() {
 		}
 
 		// Check if we have enough funds
-		poolBalance, err := u.rpc.GetBalance(u.config.Address)
+    poolAddress := os.Getenv(u.config.Address)
+		poolBalance, err := u.rpc.GetBalance(poolAddress)
 		if err != nil {
 			u.halt = true
 			u.lastFail = err

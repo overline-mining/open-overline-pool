@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+  "os"
 
 	"github.com/ethereum/go-ethereum/common/math"
 
@@ -32,13 +33,11 @@ const minDepth = 16
 const byzantiumHardForkHeight = 4370000
 const constantinopleHardForkHeight = 7280000
 
-var homesteadReward = math.MustParseBig256("5000000000000000000")
-var byzantiumReward = math.MustParseBig256("3000000000000000000")
-var constantinopleReward = math.MustParseBig256("2000000000000000000")
+var zanoReward = math.MustParseBig256("1000000000000000000")
 
 // Donate 10% from pool fees to developers
 const donationFee = 10.0
-const donationAccount = "0xb85150eb365e7df0941f0cf08235f987ba91506a"
+const donationAccount = "ZxBuuR83tRxCsXYU2fNiCLGmpinhbCxMj1Swr9vCV2ERjdBsdSYMK6gfBf5bzsGHqpU81xTrKbmHrhiKmiPrz1WL1n2yngUym"
 
 type BlockUnlocker struct {
 	config   *UnlockerConfig
@@ -49,7 +48,8 @@ type BlockUnlocker struct {
 }
 
 func NewBlockUnlocker(cfg *UnlockerConfig, backend *storage.RedisClient) *BlockUnlocker {
-	if len(cfg.PoolFeeAddress) != 0 && !util.IsValidZanoAddress(cfg.PoolFeeAddress) {
+  poolFeeAddress := os.Getenv(cfg.PoolFeeAddress)
+	if len(cfg.PoolFeeAddress) != 0 && !util.IsValidZanoAddress(poolFeeAddress) {
 		log.Fatalln("Invalid poolFeeAddress", cfg.PoolFeeAddress)
 	}
 	if cfg.Depth < minDepth*2 {
@@ -504,13 +504,7 @@ func weiToShannonInt64(wei *big.Rat) int64 {
 }
 
 func getConstReward(height int64) *big.Int {
-	if height >= constantinopleHardForkHeight {
-		return new(big.Int).Set(constantinopleReward)
-	}
-	if height >= byzantiumHardForkHeight {
-		return new(big.Int).Set(byzantiumReward)
-	}
-	return new(big.Int).Set(homesteadReward)
+	return new(big.Int).Set(zanoReward)
 }
 
 func getRewardForUncle(height int64) *big.Int {
