@@ -53,7 +53,9 @@ func NewProxy(cfg *Config, backend *storage.RedisClient) *ProxyServer {
     log.Fatalln("Invalid Miner Address", address)
   }
   cfg.Proxy.Address = address
-  
+
+  log.Printf("Address %v %v", address, cfg.Proxy.Address)
+    
 	if len(cfg.Name) == 0 {
 		log.Fatal("You must set instance name")
 	}

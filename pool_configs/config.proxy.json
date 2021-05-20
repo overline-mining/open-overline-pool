@@ -70,7 +70,7 @@
     "followEndpoint": "redis-follower:6379",
 		"poolSize": 10,
 		"database": 0,
-		"password": "",
+		"password": ""
 	},
 
 	"newrelicEnabled": false,

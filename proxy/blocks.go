@@ -4,13 +4,11 @@ import (
 	"log"
 	"math/big"
 	"strconv"
-	"strings"
 	"sync"
 
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/zano-mining/open-zano-pool/rpc"
-	"github.com/zano-mining/open-zano-pool/util"
 )
 
 const maxBacklog = 3
@@ -55,28 +53,28 @@ func (s *ProxyServer) fetchBlockTemplate() {
 		return
 	}
 	// No need to update, we have fresh job
-	if t != nil && t.Header == reply[0] {
+	if t != nil && t.Header == reply.Blob {
 		return
 	}
-	diff := util.TargetHexToDiff(reply[2])
-	height, err := strconv.ParseUint(strings.Replace(reply[3], "0x", "", -1), 16, 64)
+	diff, _ := new(big.Int).SetString(reply.Difficulty, 10)
+	height, err := strconv.ParseUint(reply.Height, 10, 64)
 
 	pendingReply := &rpc.GetBlockReplyPart{
-		Difficulty: util.ToHex(s.config.Proxy.Difficulty),
-		Number:     reply[3],
+		Difficulty: strconv.FormatInt(s.config.Proxy.Difficulty, 10),
+		Number:     reply.Height,
 	}
 
 	newTemplate := BlockTemplate{
-		Header:               reply[0],
-		Seed:                 reply[1],
-		Target:               reply[2],
+		Header:               reply.Blob,
+		Seed:                 reply.Seed,
+		Target:               reply.PrevHash,
 		Height:               height,
 		Difficulty:           diff,
 		GetPendingBlockCache: pendingReply,
 		headers:              make(map[string]heightDiffPair),
 	}
 	// Copy job backlog and add current one
-	newTemplate.headers[reply[0]] = heightDiffPair{
+	newTemplate.headers[reply.Blob] = heightDiffPair{
 		diff:   diff,
 		height: height,
 	}
@@ -88,7 +86,7 @@ func (s *ProxyServer) fetchBlockTemplate() {
 		}
 	}
 	s.blockTemplate.Store(&newTemplate)
-	log.Printf("New block to mine on %s at height %d / %s / %d", r.Name, height, reply[0][0:10], diff)
+	log.Printf("New block to mine on %s at height %d / %s / %d", r.Name, height, reply.Blob[0:10], diff)
 
 	// Stratum
 	if s.config.Proxy.Stratum.Enabled {
