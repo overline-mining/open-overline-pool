@@ -20,13 +20,15 @@ spec:
         persistentVolumeClaim:
           claimName: pvc-zano-db
       containers:
-      - name: bcnode
+      - name: zano
+        stdin: true
+        tty: true
         image: lgray/zano:latest
         volumeMounts:
         - mountPath: /home/zano/.Zano
           name: vol-zano-db
         env:
-        - name: ZANO_MINER_KEY
+        - name: POOL_MINER_KEY
           valueFrom:
             secretKeyRef:
               name: pool-miner-key

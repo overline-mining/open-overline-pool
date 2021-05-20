@@ -6,7 +6,7 @@ metadata:
     type: local
 spec:
   capacity:
-    storage: 50Gi
+    storage: 20Gi
   accessModes:
     - ReadWriteOnce
   hostPath:
@@ -23,4 +23,4 @@ spec:
   volumeName: vol-zano-db
   resources:
     requests:
-      storage: 50Gi
+      storage: 20Gi

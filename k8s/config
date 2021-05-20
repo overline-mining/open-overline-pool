@@ -1,9 +1,9 @@
 # the address the pool will mine to and that fees will be distributed from
-POOL_MINER_KEY=0x700374fb1e438f8c2624ff49412714e94f619b3b
+POOL_MINER_KEY=ZxCbHbiqZtDYcxXfAZPq6xg9HmrAHhcm5UEwfHN2XVkx8cj8tXPweZmXoBBhjztR6NGc2rWv3S7NpXbTRG4hTaGK2UQXeM2hA
 
 # a file containing the pool address's private key as a string
 POOL_MINER_PVT_KEY="${HOME}/.zano/pool_pkey"
 
 # the address where fees taken by pool are collected
-POOL_FEE_KEY=0xbfcf55b8fcb3d1937a1c6d02ff6d17089651882c
+POOL_FEE_KEY=ZxCTXCBjQXFYKg9LHE2FU5hb492Cs58u9PcG3AJbVAMq7HojE4Yk4Jec4FirYiuEsWc5Vw13KN5dSNr39QiAwVAL217oMh8Up
 
