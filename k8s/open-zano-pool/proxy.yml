@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: open-overline-pool-proxy-deployment
+  name: open-zano-pool-proxy-deployment
   labels:
-    app: open-overline-pool-proxy
+    app: open-zano-pool-proxy
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: open-overline-pool-proxy
+      app: open-zano-pool-proxy
   template:
     metadata:
-      name: open-overline-pool-proxy
+      name: open-zano-pool-proxy
       labels:
-        app: open-overline-pool-proxy
+        app: open-zano-pool-proxy
     spec:
       volumes:
       - name: config
@@ -21,19 +21,13 @@ spec:
           secretName: proxy-config-file
       containers:
       - name: oovp-test-container
-        image: lgray/open-overline-pool-api:latest
-        env:
-        - name: POOL_NODE_SCOOKIE
-          valueFrom:
-            secretKeyRef:
-              name: pool-miner-scookie
-              key: value
+        image: lgray/open-zano-pool-api:latest
         volumeMounts:
         - name: config
           mountPath: "/config"
           readOnly: true
         args: ['/config/config.proxy.json']
         ports:
-        - containerPort: 3141 # stratum mining
-        - containerPort: 3142 # http mining
+        - containerPort: 12111 # stratum mining
+        - containerPort: 11112 # http mining
         imagePullPolicy: Always

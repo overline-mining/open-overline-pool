@@ -1,41 +1,41 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: open-overline-pool-unlocker-deployment
+  name: open-zano-pool-payouts-deployment
   labels:
-    app: open-overline-pool-unlocker
+    app: open-zano-pool-payouts
 spec:
   replicas: 1 # ONLY EVER ONE OF THESE!!!
   selector:
     matchLabels:
-      app: open-overline-pool-unlocker
+      app: open-zano-pool-payouts
   template:
     metadata:
-      name: open-overline-pool-unlocker
+      name: open-zano-pool-payouts
       labels:
-        app: open-overline-pool-unlocker
+        app: open-zano-pool-payouts
     spec:
       volumes:
       - name: config
         secret:
-          secretName: unlocker-config-file
+          secretName: payouts-config-file  
       containers:
       - name: oovp-test-container
-        image: lgray/open-overline-pool-api:latest
+        image: lgray/open-zano-pool-api:latest
         env:
-        - name: POOL_FEE_KEY
+        - name: POOL_MINER_KEY
           valueFrom:
             secretKeyRef:
-              name: pool-fee-key
-              key: value
-        - name: POOL_NODE_SCOOKIE
+              name: pool-miner-key
+              key: value 
+        - name: POOL_MINER_PRIVATE_KEY
           valueFrom:
             secretKeyRef:
-              name: pool-miner-scookie
+              name: pool-miner-private-key
               key: value
         volumeMounts:
         - name: config
           mountPath: "/config"
           readOnly: true
-        args: ['/config/config.unlocker.json']
+        args: ['/config/config.payouts.json']
         imagePullPolicy: Always

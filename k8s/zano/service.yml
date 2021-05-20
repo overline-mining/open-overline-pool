@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: zano-svc
+spec:
+  selector:
+    app: zano
+  ports:
+    - name: rpc
+      protocol: TCP
+      port: 11211
+      targetPort: 11211
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zano-svc-external
+spec:
+  selector:
+    app: zano
+  ports:
+    - name: zano
+      protocol: TCP
+      port: 11121
+      targetPort: 11121
+  externalIPs:
+  - 167.99.248.247

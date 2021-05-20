@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: open-zano-pool-unlocker-deployment
+  labels:
+    app: open-zano-pool-unlocker
+spec:
+  replicas: 1 # ONLY EVER ONE OF THESE!!!
+  selector:
+    matchLabels:
+      app: open-zano-pool-unlocker
+  template:
+    metadata:
+      name: open-zano-pool-unlocker
+      labels:
+        app: open-zano-pool-unlocker
+    spec:
+      volumes:
+      - name: config
+        secret:
+          secretName: unlocker-config-file
+      containers:
+      - name: oovp-test-container
+        image: lgray/open-zano-pool-api:latest
+        env:
+        - name: POOL_FEE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: pool-fee-key
+              key: value
+        volumeMounts:
+        - name: config
+          mountPath: "/config"
+          readOnly: true
+        args: ['/config/config.unlocker.json']
+        imagePullPolicy: Always

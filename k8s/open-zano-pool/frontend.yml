@@ -1,27 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: open-overline-pool-frontend-deployment
+  name: open-zano-pool-frontend-deployment
   labels:
-    app: open-overline-pool-frontend
+    app: open-zano-pool-frontend
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: open-overline-pool-frontend
+      app: open-zano-pool-frontend
   template:
     metadata:
-      name: open-overline-pool-frontend
+      name: open-zano-pool-frontend
       labels:
-        app: open-overline-pool-frontend
+        app: open-zano-pool-frontend
     spec:
-      volumes:
-      - name: ssh-secret
-        secret:
-          secretName: secret-ssh-auth
       containers:
       - name: oovp-test-container
-        image: lgray/open-overline-pool-frontend:latest
+        image: lgray/open-zano-pool-frontend:latest
         env:
         - name: TZ
           value: "Etc/Universal"

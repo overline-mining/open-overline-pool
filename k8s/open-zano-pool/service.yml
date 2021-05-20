@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: open-overline-pool-frontend
+  name: open-zano-pool-frontend
 spec:
   ports:
   - name: web
@@ -9,34 +9,34 @@ spec:
   - name: livereload
     port: 7020
   selector:
-    app: open-overline-pool-frontend
+    app: open-zano-pool-frontend
   externalIPs:
   - 157.245.116.220
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: open-overline-pool-api
+  name: open-zano-pool-api
 spec:
   ports:
   - name: api
-    port: 6283
+    port: 21111
   selector:
-    app: open-overline-pool-api
+    app: open-zano-pool-api
   externalIPs:
   - 157.245.116.220
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: open-overline-pool-proxy
+  name: open-zano-pool-proxy
 spec:
   ports:
   - name: stratum-mining
-    port: 3141
+    port: 12111
   - name: http-mining
-    port: 3142
+    port: 11112
   selector:
-    app: open-overline-pool-proxy
+    app: open-zano-pool-proxy
   externalIPs:
   - 157.245.116.220

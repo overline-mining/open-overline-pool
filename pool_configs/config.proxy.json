@@ -1,17 +1,17 @@
 {
 	"threads": 32,
-	"coin": "ol",
+	"coin": "zano",
 	"name": "main",
 
 	"proxy": {
 		"enabled": true,
-		"listen": "0.0.0.0:3142",
+		"listen": "0.0.0.0:11112",
 		"limitHeadersSize": 1024,
 		"limitBodySize": 256,
 		"behindReverseProxy": false,
 		"blockRefreshInterval": "120ms",
 		"stateUpdateInterval": "3s",
-                "difficulty": 315000000000000,
+    "difficulty": 900000000000,
 		"hashrateExpiration": "3h",
 
 		"healthCheck": true,
@@ -19,7 +19,7 @@
 
 		"stratum": {
 			"enabled": true,
-			"listen": "0.0.0.0:3141",
+			"listen": "0.0.0.0:12111",
 			"timeout": "120s",
 			"maxConn": 8192,
 			"tls": false,
@@ -53,16 +53,12 @@
 	"upstream": [
 		{
 			"name": "main",
-      "url": "http://overline:3000/rpc",
-      "urlMining": "http://localhost:3001",
-      "scookie": "POOL_NODE_SCOOKIE",
+      "url": "http://zano-svc:11211/json_rpc",
 			"timeout": "10s"
 		},
 		{
 			"name": "backup",
-      "url": "http://overline2:3000/rpc",
-      "urlMining": "http://overline2:3001",
-      "scookie": "POOL_NODE_SCOOKIE",
+      "url": "http://zano-svc2:11211/json_rpc",
 			"timeout": "10s"
 		}
 	],
@@ -73,7 +69,6 @@
 		"poolSize": 10,
 		"database": 0,
 		"password": "",
-    "diffToHashRate": 1.21913865e-7
 	},
 
 	"newrelicEnabled": false,

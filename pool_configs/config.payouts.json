@@ -1,6 +1,6 @@
 {
 	"threads": 2,
-	"coin": "ol",
+	"coin": "zano",
 	"name": "main",
 
 	"redis": {
@@ -9,15 +9,13 @@
 		"poolSize": 10,
 		"database": 0,
 		"password": "",
-    "diffToHashRate": 1.21913865e-7
 	},
 
 	"payouts": {
 		"enabled": true,
 		"requirePeers":25,
-		"interval": "10m",
-		"daemon": "http://overline:3000/rpc",
-    "scookie": "POOL_NODE_SCOOKIE",  
+		"interval": "60m",
+		"daemon": "http://zano-svc:11211/json_rpc",
 		"timeout": "10s",
 		"address": "POOL_MINER_KEY",
     "privateKey": "POOL_MINER_PRIVATE_KEY",

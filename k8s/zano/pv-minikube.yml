@@ -1,7 +1,7 @@
 kind: PersistentVolume
 apiVersion: v1
 metadata:
-  name: vol-bcnode-db
+  name: vol-zano-db
   labels:
     type: local
 spec:
@@ -10,17 +10,17 @@ spec:
   accessModes:
     - ReadWriteOnce
   hostPath:
-    path: "/data/vol-bcnode-db"
+    path: "/data/vol-zano-db"
 ---
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
-  name: pvc-bcnode-db
+  name: pvc-zano-db
 spec:
   accessModes:
     - ReadWriteOnce
   storageClassName: ""
-  volumeName: vol-bcnode-db
+  volumeName: vol-zano-db
   resources:
     requests:
       storage: 50Gi

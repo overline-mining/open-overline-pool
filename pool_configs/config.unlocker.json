@@ -1,6 +1,6 @@
 {
 	"threads": 2,
-	"coin": "ol",
+	"coin": "zano",
 	"name": "main",
 
 	"redis": {
@@ -9,20 +9,18 @@
 		"poolSize": 10,
 		"database": 0,
 		"password": "",
-    "diffToHashRate": 1.21913865e-7
 	},
 
 	"unlocker": {
 		"enabled": true,
-		"poolFee": 1.0,
+		"poolFee": 5.0,
     "poolFeeAddress": "POOL_FEE_KEY",
 		"donate": true,
 		"depth": 100,
 		"immatureDepth": 16,
 		"keepTxFees": false,
 		"interval": "10s",
-		"daemon": "http://overline:3000/rpc",
-    "scookie": "POOL_NODE_SCOOKIE",
+		"daemon": "http://zano-svc:11211/json_rpc",
 		"timeout": "10s"
 	},
 

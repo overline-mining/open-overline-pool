@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: open-overline-pool-api-deployment
+  name: open-zano-pool-api-deployment
   labels:
-    app: open-overline-pool-api
+    app: open-zano-pool-api
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: open-overline-pool-api
+      app: open-zano-pool-api
   template:
     metadata:
-      name: open-overline-pool-api
+      name: open-zano-pool-api
       labels:
-        app: open-overline-pool-api
+        app: open-zano-pool-api
     spec:
       volumes:
       - name: config
@@ -21,12 +21,12 @@ spec:
           secretName: api-config-file
       containers:
       - name: oovp-test-container
-        image: lgray/open-overline-pool-api:latest
+        image: lgray/open-zano-pool-api:latest
         volumeMounts:
         - name: config
           mountPath: "/config"
           readOnly: true
         args: ['/config/config.api.json'] 
         ports:
-        - containerPort: 6283 # polling api
+        - containerPort: 21111 # polling api
         imagePullPolicy: Always

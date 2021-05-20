@@ -1,13 +1,13 @@
 {
 	"threads": 2,
-	"coin": "ol",
+	"coin": "zano",
 	"name": "main",
 
 	"api": {
 		"enabled": true,
 		"purgeOnly": false,
 		"purgeInterval": "10m",
-		"listen": "0.0.0.0:6283",
+		"listen": "0.0.0.0:21111",
 		"statsCollectInterval": "5s",
 		"hashrateWindow": "30m",
 		"hashrateLargeWindow": "3h",
@@ -22,7 +22,6 @@
 		"poolSize": 10,
 		"database": 0,
 		"password": "",
-    "diffToHashRate": 1.21913865e-7
 	},
 
 	"newrelicEnabled": false,

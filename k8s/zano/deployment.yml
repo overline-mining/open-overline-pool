@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zano-deployment
+  labels:
+    app: zano
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: zano
+  template:
+    # template for bcnode pods
+    metadata:
+      labels:
+        app: zano
+    spec:
+      volumes:
+      - name: vol-zano-db
+        persistentVolumeClaim:
+          claimName: pvc-zano-db
+      containers:
+      - name: bcnode
+        image: lgray/zano:latest
+        volumeMounts:
+        - mountPath: /home/zano/.Zano
+          name: vol-zano-db
+        env:
+        - name: ZANO_MINER_KEY
+          valueFrom:
+            secretKeyRef:
+              name: pool-miner-key
+              key: value
+        ports:
+        - name: rpc
+          protocol: TCP
+          containerPort: 11211
+        - name: bcbootstrap
+          protocol: TCP
+          containerPort: 11121
+        imagePullPolicy: Always
