@@ -16,6 +16,7 @@ var Shannon = math.BigPow(10, 9)
 
 var pow256 = math.BigPow(2, 256)
 var addressPattern = regexp.MustCompile("^0x[0-9a-fA-F]{40}$")
+var addressPattern2 = regexp.MustCompile("[0-9a-fA-F]{97}")
 var zeroHash = regexp.MustCompile("^0?x?0+$")
 
 func IsValidHexAddress(s string) bool {

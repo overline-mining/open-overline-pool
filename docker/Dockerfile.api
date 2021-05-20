@@ -45,4 +45,4 @@ WORKDIR /opt/pool
 
 EXPOSE 21111 12111 11112
 
-ENTRYPOINT [ "./open-overline-pool" ]
+ENTRYPOINT [ "./open-zano-pool" ]
