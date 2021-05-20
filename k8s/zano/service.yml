@@ -24,4 +24,4 @@ spec:
       port: 11121
       targetPort: 11121
   externalIPs:
-  - 167.99.248.247
+  - 143.110.217.248

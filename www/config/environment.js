@@ -2,7 +2,7 @@
 
 module.exports = function(environment) {
   let ENV = {
-    modulePrefix: 'open-overline-pool',
+    modulePrefix: 'open-zano-pool',
     environment: environment,
     rootURL: '/',
     locationType: 'hash',
@@ -15,22 +15,22 @@ module.exports = function(environment) {
 
     APP: {
       // API host and port
-      ApiUrl: 'http://localhost:6283/',
+      ApiUrl: 'http://zano.waietng-pool.us:21111/',
 
       // HTTP mining endpoint
-      HttpHost: 'http://localhost',
-      HttpPort: 3142,
+      HttpHost: 'http://zano.waietng-pool.us',
+      HttpPort: 11112,
 
       // Stratum mining endpoint
-      StratumHost: 'localhost',
-      StratumPort: 3141,
+      StratumHost: 'zano.waietng-pool.us',
+      StratumPort: 12111,
 
       // Fee and payout details
-      PoolFee: '1%',
-      PayoutThreshold: '10 Overline',
+      PoolFee: '5%',
+      PayoutThreshold: '1 Zano',
 
       // For network hashrate (change for your favourite fork)
-      BlockTime: 14.4
+      BlockTime: 60.0
     }
   };
 

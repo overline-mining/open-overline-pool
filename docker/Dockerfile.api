@@ -18,7 +18,7 @@ RUN mkdir -p /var/local/git
 
 ARG CACHEBUST=1
 
-RUN git clone https://github.com/zano-mining/open-zano-pool /var/local/git/open-zano-pool \
+RUN git clone https://github.com/zano-mining/open-zano-pool /var/local/git/open-zano-pool && \
     cd /var/local/git/open-zano-pool && make && \
     mkdir -p /artifacts && \
     cp /var/local/git/open-zano-pool/config.example.json /artifacts/config.json && \
