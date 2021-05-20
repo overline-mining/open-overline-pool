@@ -115,7 +115,7 @@ func (r *RPCClient) GetWork(miner_address string) (*GetBlockTemplateReply, error
   wparams.PosAmount = 0
   wparams.PosIndex = 0
   fmt.Println(wparams)  
-	rpcResp, err := r.doPost(r.Url, "getblocktemplate", []WorkRequestParams{wparams})
+	rpcResp, err := r.doPost(r.Url, "getblocktemplate", wparams)
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +125,7 @@ func (r *RPCClient) GetWork(miner_address string) (*GetBlockTemplateReply, error
 }
 
 func (r *RPCClient) GetLatestBlock() (*GetBlockReplyPart, error) {
-	rpcResp, err := r.doPost(r.Url, "eth_getBlockByNumber", []interface{}{"latest", false})
+	rpcResp, err := r.doPost(r.Url, "getlastblockheader", []interface{}{})
 	if err != nil {
 		return nil, err
 	}
