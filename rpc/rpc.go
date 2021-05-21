@@ -13,7 +13,6 @@ import (
 	"sync"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
-
 	"github.com/zano-mining/open-zano-pool/util"
 )
 
@@ -38,6 +37,7 @@ type WorkRequestParams struct {
 
 type GetBlockTemplateReply struct {
   Blob         string   `json:"blocktemplate_blob"`
+  Header       string   `json:"blocktemplate_work"`
   Difficulty   string   `json:"difficulty"`
   Height       uint64   `json:"height"`
   PrevHash     string   `json:"prev_hash"`
@@ -59,14 +59,20 @@ type GetBlockReply struct {
 	SealFields []string `json:"sealFields"`
 }
 
-type GetBlockReplyHeaderPart struct {
-	Number     uint64 `json:"height"`
-	Difficulty string `json:"difficulty"`
+type GetBlockReplyHeaderPartRaw struct {
+  Number     uint64 `json:"height"`
+  Difficulty string `json:"difficulty"`
   Hash       string `json:"hash"`
 }
 
 type GetBlockReplyPart struct {
-  BlockHeader GetBlockReplyHeaderPart `json:"block_header"`
+	Number     string `json:"number"`
+	Difficulty string `json:"difficulty"`
+  Hash       string `json:"hash"`
+}
+
+type GetBlockReplyPartRaw struct {
+  BlockHeader GetBlockReplyHeaderPartRaw `json:"block_header"`
 }
 
 const receiptStatusSuccessful = "0x1"
@@ -111,7 +117,7 @@ func NewRPCClient(name, url, timeout string) *RPCClient {
 	return rpcClient
 }
 
-func (r *RPCClient) GetWork(miner_address string) (*GetBlockTemplateReply, error) {
+func (r *RPCClient) GetWork(miner_address string) ([]string, error) {
   var wparams WorkRequestParams
   wparams.ExtraText = "open-zano-pool"
   wparams.WalletAddress = miner_address
@@ -123,8 +129,16 @@ func (r *RPCClient) GetWork(miner_address string) (*GetBlockTemplateReply, error
 	if err != nil {
 		return nil, err
 	}
-	var reply *GetBlockTemplateReply
-	err = json.Unmarshal(*rpcResp.Result, &reply)
+	var replyJson *GetBlockTemplateReply
+	err = json.Unmarshal(*rpcResp.Result, &replyJson)
+
+  reply := []string{
+    replyJson.Header,
+    "0x" + replyJson.Seed,
+    util.GetTargetHexFromString(replyJson.Difficulty),
+    util.ToHexUint(replyJson.Height),
+  }
+  
 	return reply, err
 }
 
@@ -134,8 +148,12 @@ func (r *RPCClient) GetLatestBlock() (*GetBlockReplyPart, error) {
 		return nil, err
 	}
 	if rpcResp.Result != nil {
-		var reply *GetBlockReplyPart
-		err = json.Unmarshal(*rpcResp.Result, &reply)
+		var replyRaw *GetBlockReplyPartRaw
+		err = json.Unmarshal(*rpcResp.Result, &replyRaw)
+    var reply *GetBlockReplyPart
+    reply.Number = util.ToHexUint(replyRaw.BlockHeader.Number)
+    reply.Difficulty = replyRaw.BlockHeader.Difficulty
+    reply.Hash = replyRaw.BlockHeader.Hash
 		return reply, err
 	}
 	return nil, nil

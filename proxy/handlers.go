@@ -38,7 +38,7 @@ func (s *ProxyServer) handleGetWorkRPC(cs *Session) ([]string, *ErrorReply) {
 	if t == nil || len(t.Header) == 0 || s.isSick() {
 		return nil, &ErrorReply{Code: 0, Message: "Work not ready"}
 	}
-	return []string{t.Header, t.Seed, s.diff}, nil
+	return []string{t.Header, t.Seed, s.diff, util.ToHexUint(t.Height)}, nil
 }
 
 // Stratum
@@ -93,9 +93,9 @@ func (s *ProxyServer) handleSubmitRPC(cs *Session, login, id string, params []st
 	return true, nil
 }
 
-func (s *ProxyServer) handleGetBlockByNumberRPC() *rpc.GetBlockReplyHeaderPart {
+func (s *ProxyServer) handleGetBlockByNumberRPC() *rpc.GetBlockReplyPart {
 	t := s.currentBlockTemplate()
-	var reply *rpc.GetBlockReplyHeaderPart
+	var reply *rpc.GetBlockReplyPart
 	if t != nil {
 		reply = t.GetPendingBlockCache
 	}
