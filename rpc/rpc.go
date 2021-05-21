@@ -150,10 +150,14 @@ func (r *RPCClient) GetLatestBlock() (*GetBlockReplyPart, error) {
 	if rpcResp.Result != nil {
 		var replyRaw *GetBlockReplyPartRaw
 		err = json.Unmarshal(*rpcResp.Result, &replyRaw)
-    var reply *GetBlockReplyPart
+    if err != nil {
+      return nil, err
+    }
+    var reply = new(GetBlockReplyPart)
     reply.Number = util.ToHexUint(replyRaw.BlockHeader.Number)
     reply.Difficulty = replyRaw.BlockHeader.Difficulty
     reply.Hash = replyRaw.BlockHeader.Hash
+
 		return reply, err
 	}
 	return nil, nil
