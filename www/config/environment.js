@@ -30,7 +30,7 @@ module.exports = function(environment) {
       PayoutThreshold: '1 Zano',
 
       // For network hashrate (change for your favourite fork)
-      BlockTime: 60.0
+      BlockTime: 33.0
     }
   };
 

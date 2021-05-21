@@ -59,9 +59,14 @@ type GetBlockReply struct {
 	SealFields []string `json:"sealFields"`
 }
 
-type GetBlockReplyPart struct {
-	Number     string `json:"number"`
+type GetBlockReplyHeaderPart struct {
+	Number     uint64 `json:"height"`
 	Difficulty string `json:"difficulty"`
+  Hash       string `json:"hash"`
+}
+
+type GetBlockReplyPart struct {
+  BlockHeader GetBlockReplyHeaderPart `json:"block_header"`
 }
 
 const receiptStatusSuccessful = "0x1"
@@ -114,7 +119,6 @@ func (r *RPCClient) GetWork(miner_address string) (*GetBlockTemplateReply, error
   wparams.PosBlock = false
   wparams.PosAmount = 0
   wparams.PosIndex = 0
-  fmt.Println(wparams)  
 	rpcResp, err := r.doPost(r.Url, "getblocktemplate", wparams)
 	if err != nil {
 		return nil, err
@@ -125,7 +129,7 @@ func (r *RPCClient) GetWork(miner_address string) (*GetBlockTemplateReply, error
 }
 
 func (r *RPCClient) GetLatestBlock() (*GetBlockReplyPart, error) {
-	rpcResp, err := r.doPost(r.Url, "getlastblockheader", []interface{}{})
+	rpcResp, err := r.doPost(r.Url, "getlastblockheader", []string{})
 	if err != nil {
 		return nil, err
 	}

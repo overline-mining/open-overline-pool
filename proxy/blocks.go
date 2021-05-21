@@ -25,7 +25,7 @@ type BlockTemplate struct {
 	Target               string
 	Difficulty           *big.Int
 	Height               uint64
-	GetPendingBlockCache *rpc.GetBlockReplyPart
+	GetPendingBlockCache *rpc.GetBlockReplyHeaderPart
 	nonces               map[string]bool
 	headers              map[string]heightDiffPair
 }
@@ -47,34 +47,45 @@ func (b Block) NumberU64() uint64        { return b.number }
 func (s *ProxyServer) fetchBlockTemplate() {
 	r := s.rpc()
 	t := s.currentBlockTemplate()
-	reply, err := r.GetWork(s.config.Proxy.Address)
+	replyLastBlock, err := r.GetLatestBlock()
+
 	if err != nil {
 		log.Printf("Error while refreshing block template on %s: %s", r.Name, err)
 		return
 	}
+    
 	// No need to update, we have fresh job
-	if t != nil && t.Header == reply.Blob {
+	if t != nil && t.Header == replyLastBlock.BlockHeader.Hash {
 		return
 	}
-	diff, _ := new(big.Int).SetString(reply.Difficulty, 10)
+
+  reply, err := r.GetWork(s.config.Proxy.Address)
+  if err != nil {
+    log.Printf("Error while refreshing block template on %s: %s", r.Name, err)
+    return
+  }
+
+  log.Printf("lastblock.Hash (%v) getwork.PrevHash (%v)", replyLastBlock.BlockHeader.Hash, reply.PrevHash)
+  
+  diff, _ := new(big.Int).SetString(reply.Difficulty, 10)
 	height := reply.Height
 
-	pendingReply := &rpc.GetBlockReplyPart{
+	pendingReply := &rpc.GetBlockReplyHeaderPart{
 		Difficulty: strconv.FormatInt(s.config.Proxy.Difficulty, 10),
-		Number:     strconv.FormatUint(reply.Height, 10),
+		Number:     reply.Height,
 	}
-
+  
 	newTemplate := BlockTemplate{
-		Header:               reply.Blob,
+		Header:               reply.PrevHash,
 		Seed:                 reply.Seed,
-		Target:               reply.PrevHash,
+		Target:               reply.Blob,
 		Height:               height,
 		Difficulty:           diff,
 		GetPendingBlockCache: pendingReply,
 		headers:              make(map[string]heightDiffPair),
 	}
 	// Copy job backlog and add current one
-	newTemplate.headers[reply.Blob] = heightDiffPair{
+	newTemplate.headers[reply.PrevHash] = heightDiffPair{
 		diff:   diff,
 		height: height,
 	}
@@ -86,7 +97,7 @@ func (s *ProxyServer) fetchBlockTemplate() {
 		}
 	}
 	s.blockTemplate.Store(&newTemplate)
-	log.Printf("New block to mine on %s at height %d / %s / %d", r.Name, height, reply.Blob[0:10], diff)
+	log.Printf("New block to mine on %s at height %d / %s / %d", r.Name, height, reply.Blob[28:38], diff)
 
 	// Stratum
 	if s.config.Proxy.Stratum.Enabled {
