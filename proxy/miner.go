@@ -3,11 +3,14 @@ package proxy
 import (
 	"log"
 	"math/big"
+  "fmt"
 	"strconv"
 	"strings"
 
 	"github.com/ethereum/ethash"
 	"github.com/ethereum/go-ethereum/common"
+  "github.com/zano-mining/open-zano-pool/util"
+  
 )
 
 var hasher = ethash.New()
@@ -41,11 +44,38 @@ func (s *ProxyServer) processShare(login, id, ip string, t *BlockTemplate, param
 		mixDigest:   common.HexToHash(mixDigest),
 	}
 
-	if !hasher.Verify(share) {
+  share_params := []string{
+    nonceHex,
+    hashNoNonce,
+    mixDigest,
+    util.ToHexUint(share.NumberU64()),
+    fmt.Sprintf("0x%x", share.Difficulty()),
+  }
+
+  good_share, err := s.rpc().VerifySolution(share_params)
+  if err != nil {
+    log.Printf("Error calling VerifySolution on share!")
+  }
+  
+	if !*good_share {
 		return false, false
 	}
 
-	if hasher.Verify(block) {
+  block_params := []string{
+    nonceHex,
+    hashNoNonce,
+    mixDigest,
+    util.ToHexUint(block.NumberU64()),
+    fmt.Sprintf("0x%x", block.Difficulty()),
+  }
+
+  good_block, err := s.rpc().VerifySolution(block_params)
+  if err != nil {
+    log.Printf("Error calling VerifySolution on block!")    
+  }
+    
+	if *good_block {
+    params := []string{t.Blob[2:4] + nonceHex[2:] + t.Blob[20:]}
 		ok, err := s.rpc().SubmitBlock(params)
 		if err != nil {
 			log.Printf("Block submission failure at height %v for %v: %v", h.height, t.Header, err)

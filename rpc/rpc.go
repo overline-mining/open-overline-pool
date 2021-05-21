@@ -137,9 +137,26 @@ func (r *RPCClient) GetWork(miner_address string) ([]string, error) {
     "0x" + replyJson.Seed,
     util.GetTargetHexFromString(replyJson.Difficulty),
     util.ToHexUint(replyJson.Height),
+    "0x" + replyJson.Blob,
   }
   
 	return reply, err
+}
+
+func (r * RPCClient) VerifySolution(params []string) (*bool, error) {
+  rpcResp, err := r.doPost(r.Url, "checksolution", params)
+  if err != nil {
+    return nil, err
+  }
+  if rpcResp.Result != nil {
+    var reply *bool
+    err = json.Unmarshal(*rpcResp.Result, &reply)
+    if err != nil {
+      return nil, err
+    }
+    return reply, err
+  }
+  return nil, nil
 }
 
 func (r *RPCClient) GetLatestBlock() (*GetBlockReplyPart, error) {
@@ -205,7 +222,7 @@ func (r *RPCClient) GetTxReceipt(hash string) (*TxReceipt, error) {
 }
 
 func (r *RPCClient) SubmitBlock(params []string) (bool, error) {
-	rpcResp, err := r.doPost(r.Url, "eth_submitWork", params)
+	rpcResp, err := r.doPost(r.Url, "submitblock", params)
 	if err != nil {
 		return false, err
 	}

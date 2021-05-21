@@ -26,6 +26,7 @@ type BlockTemplate struct {
 	Seed                 string
 	Target               string
   PrevHash             string
+  Blob                 string
 	Difficulty           *big.Int
 	Height               uint64
 	GetPendingBlockCache *rpc.GetBlockReplyPart
@@ -83,6 +84,7 @@ func (s *ProxyServer) fetchBlockTemplate() {
 		Seed:                 reply[1],
 		Target:               reply[2],
     PrevHash:             replyLastBlock.Hash,
+    Blob:                 reply[4],
 		Height:               height,
 		Difficulty:           diff,
 		GetPendingBlockCache: pendingReply,
