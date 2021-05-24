@@ -196,7 +196,7 @@ func (s *ProxyServer) broadcastNewJobs() {
 	if t == nil || len(t.Header) == 0 || s.isSick() {
 		return
 	}
-	reply := []string{t.Header, t.Seed, s.diff}
+	reply := []string{t.Header, t.Seed, s.diff, util.ToHexUint(t.Height)}
 
 	s.sessionsMu.RLock()
 	defer s.sessionsMu.RUnlock()

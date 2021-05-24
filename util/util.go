@@ -15,6 +15,7 @@ var Ether = math.BigPow(10, 18)
 var Shannon = math.BigPow(10, 9)
 
 var pow256 = math.BigPow(2, 256)
+var u256max = new(big.Int).Sub(pow256, new(big.Int).SetInt64(1))
 var addressPattern = regexp.MustCompile("^0x[0-9a-fA-F]{40}$")
 var addressPattern2 = regexp.MustCompile("[0-9a-zA-Z]{97}")
 var zeroHash = regexp.MustCompile("^0?x?0+$")
@@ -43,19 +44,19 @@ func MakeTimestamp() int64 {
 
 func GetTargetHexFromString(diff string) string {
   difficulty, _ := new(big.Int).SetString(diff, 10)
-  diff1 := new(big.Int).Div(pow256, difficulty)
+  diff1 := new(big.Int).Div(u256max, difficulty)
   return string(hexutil.Encode(diff1.Bytes()))
 }
   
 func GetTargetHex(diff int64) string {
 	difficulty := big.NewInt(diff)
-	diff1 := new(big.Int).Div(pow256, difficulty)
+	diff1 := new(big.Int).Div(u256max, difficulty)
 	return string(hexutil.Encode(diff1.Bytes()))
 }
 
 func TargetHexToDiff(targetHex string) *big.Int {
 	targetBytes := common.FromHex(targetHex)
-	return new(big.Int).Div(pow256, new(big.Int).SetBytes(targetBytes))
+	return new(big.Int).Div(u256max, new(big.Int).SetBytes(targetBytes))
 }
 
 func ToHex(n int64) string {

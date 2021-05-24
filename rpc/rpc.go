@@ -75,6 +75,10 @@ type GetBlockReplyPartRaw struct {
   BlockHeader GetBlockReplyHeaderPartRaw `json:"block_header"`
 }
 
+type SubmitBlockReply struct {
+  Status string `json:"status"`
+}
+
 const receiptStatusSuccessful = "0x1"
 
 type TxReceipt struct {
@@ -149,8 +153,8 @@ func (r * RPCClient) VerifySolution(params []string) (*bool, error) {
     return nil, err
   }
   if rpcResp.Result != nil {
-    var reply *bool
-    err = json.Unmarshal(*rpcResp.Result, &reply)
+    reply := new(bool)
+    *reply, _ = strconv.ParseBool(string(*rpcResp.Result))
     if err != nil {
       return nil, err
     }
@@ -226,9 +230,12 @@ func (r *RPCClient) SubmitBlock(params []string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	var reply bool
+	var reply *SubmitBlockReply
 	err = json.Unmarshal(*rpcResp.Result, &reply)
-	return reply, err
+  if reply.Status == "OK" {
+    return true, err
+  }
+	return false, err
 }
 
 func (r *RPCClient) GetBalance(address string) (*big.Int, error) {
@@ -318,7 +325,7 @@ func (r *RPCClient) doPost(url string, method string, params interface{}) (*JSON
 		return nil, err
 	}
 	defer resp.Body.Close()
-
+  
 	var rpcResp *JSONRpcResp
 	err = json.NewDecoder(resp.Body).Decode(&rpcResp)
 	if err != nil {
