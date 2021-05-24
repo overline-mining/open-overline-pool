@@ -52,6 +52,8 @@ func (s *ProxyServer) processShare(login, id, ip string, t *BlockTemplate, param
     fmt.Sprintf("0x%x", share.Difficulty()),
   }
 
+  log.Printf("Share params: %v", share_params)
+  
   good_share, err := s.rpc().VerifySolution(share_params)
   if err != nil {
     log.Printf("Error calling VerifySolution on share!")
@@ -69,6 +71,8 @@ func (s *ProxyServer) processShare(login, id, ip string, t *BlockTemplate, param
     fmt.Sprintf("0x%x", block.Difficulty()),
   }
 
+  log.Printf("Block params: %v", block_params)
+  
   good_block, err := s.rpc().VerifySolution(block_params)
   if err != nil {
     log.Printf("Error calling VerifySolution on block!")    
