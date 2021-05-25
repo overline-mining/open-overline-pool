@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 	"sort"
-	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -249,7 +248,7 @@ func (s *ApiServer) AccountIndex(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Cache-Control", "no-cache")
 
-	login := strings.ToLower(mux.Vars(r)["login"])
+	login := mux.Vars(r)["login"]
 	s.minersMu.Lock()
 	defer s.minersMu.Unlock()
 
