@@ -46,9 +46,11 @@ type BlockUnlocker struct {
 
 func NewBlockUnlocker(cfg *UnlockerConfig, backend *storage.RedisClient) *BlockUnlocker {
   poolFeeAddress := os.Getenv(cfg.PoolFeeAddress)
-	if len(cfg.PoolFeeAddress) != 0 && !util.IsValidZanoAddress(poolFeeAddress) {
-		log.Fatalln("Invalid poolFeeAddress", cfg.PoolFeeAddress)
+	if len(poolFeeAddress) != 0 && !util.IsValidZanoAddress(poolFeeAddress) {
+		log.Fatalln("Invalid poolFeeAddress", poolFeeAddress)
 	}
+  cfg.PoolFeeAddress = poolFeeAddress
+  
 	if cfg.Depth < minDepth*2 {
 		log.Fatalf("Block maturity depth can't be < %v, your depth is %v", minDepth*2, cfg.Depth)
 	}
@@ -444,12 +446,12 @@ func (u *BlockUnlocker) calculateRewards(block *storage.BlockData) (*big.Rat, *b
 	if u.config.Donate {
 		var donation = new(big.Rat)
 		poolProfit, donation = chargeFee(poolProfit, donationFee)
-		login := strings.ToLower(donationAccount)
+		login := donationAccount
 		rewards[login] += weiToShannonInt64(donation)
 	}
 
 	if len(u.config.PoolFeeAddress) != 0 {
-		address := strings.ToLower(u.config.PoolFeeAddress)
+		address := u.config.PoolFeeAddress
 		rewards[address] += weiToShannonInt64(poolProfit)
 	}
 
