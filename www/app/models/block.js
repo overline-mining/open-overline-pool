@@ -20,7 +20,7 @@ var Block = EmberObject.extend({
 
   formatReward: computed('reward', function() {
     if (!this.get('orphan')) {
-      let value = parseInt(this.get('reward')) * 0.000000000000000001;
+      let value = parseInt(this.get('reward')) * 0.000000000001;
       return value.toFixed(6);
     } else {
       return 0;

@@ -30,10 +30,7 @@ type UnlockerConfig struct {
 }
 
 const minDepth = 16
-const byzantiumHardForkHeight = 4370000
-const constantinopleHardForkHeight = 7280000
-
-var zanoReward = math.MustParseBig256("1000000000000000000")
+var zanoReward = math.MustParseBig256("1000000000000")
 
 // Donate 10% from pool fees to developers
 const donationFee = 10.0
@@ -198,10 +195,7 @@ func matchCandidate(block *rpc.GetBlockReply, candidate *storage.BlockData) bool
 	if len(block.Nonce) > 0 {
 		return strings.EqualFold(block.Nonce, candidate.Nonce)
 	}
-	// Parity's EIP: https://github.com/ethereum/EIPs/issues/95
-	if len(block.SealFields) == 2 {
-		return strings.EqualFold(candidate.Nonce, block.SealFields[1])
-	}
+
 	return false
 }
 
@@ -211,25 +205,9 @@ func (u *BlockUnlocker) handleBlock(block *rpc.GetBlockReply, candidate *storage
 		return err
 	}
 	candidate.Height = correctHeight
-	reward := getConstReward(candidate.Height)
+	reward := new(big.Int).SetUint64(block.Reward)
 
-	// Add TX fees
-	extraTxReward, err := u.getExtraRewardForTx(block)
-	if err != nil {
-		return fmt.Errorf("Error while fetching TX receipt: %v", err)
-	}
-	if u.config.KeepTxFees {
-		candidate.ExtraReward = extraTxReward
-	} else {
-		reward.Add(reward, extraTxReward)
-	}
-
-	// Add reward for including uncles
-	uncleReward := getRewardForUncle(candidate.Height)
-	rewardForUncles := big.NewInt(0).Mul(uncleReward, big.NewInt(int64(len(block.Uncles))))
-	reward.Add(reward, rewardForUncles)
-
-	candidate.Orphan = false
+	candidate.Orphan = block.OrphanStatus
 	candidate.Hash = block.Hash
 	candidate.Reward = reward
 	return nil

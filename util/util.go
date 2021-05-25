@@ -11,8 +11,8 @@ import (
 	"github.com/ethereum/go-ethereum/common/math"
 )
 
-var Ether = math.BigPow(10, 18)
-var Shannon = math.BigPow(10, 9)
+var Ether = math.BigPow(10, 12)
+var Shannon = math.BigPow(10, 6)
 
 var pow256 = math.BigPow(2, 256)
 var u256max = new(big.Int).Sub(pow256, new(big.Int).SetInt64(1))
@@ -65,6 +65,10 @@ func ToHex(n int64) string {
 
 func ToHexUint(n uint64) string {
   return "0x0" + strconv.FormatUint(n, 16)
+}
+
+func ToHexUintNoPad(n uint64) string {
+  return "0x" + strconv.FormatUint(n, 16)
 }
 
 func FormatReward(reward *big.Int) string {
