@@ -25,18 +25,3 @@ spec:
     app: open-zano-pool-api
   externalIPs:
   - 143.110.217.248
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: open-zano-pool-proxy
-spec:
-  ports:
-  - name: stratum-mining
-    port: 12111
-  - name: http-mining
-    port: 11112
-  selector:
-    app: open-zano-pool-proxy
-  externalIPs:
-  - 143.110.217.248

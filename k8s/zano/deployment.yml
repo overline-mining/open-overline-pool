@@ -22,6 +22,9 @@ spec:
       - name: wallet
         secret:
           secretName: pool-wallet-file
+      - name: config
+        secret:
+          secretName: proxy-config-file
       containers:
       - name: zano
         stdin: true
@@ -65,4 +68,21 @@ spec:
         - name: wallet-rpc
           protocol: TCP
           containerPort: 11212
+        imagePullPolicy: Always
+      - name: zano-pool-proxy
+        image: lgray/open-zano-pool-api:latest
+        env:
+        - name: POOL_MINER_KEY
+          valueFrom:
+            secretKeyRef:
+              name: pool-miner-key
+              key: value
+        volumeMounts:
+        - name: config
+          mountPath: "/config"
+          readOnly: true
+        args: ['/config/config.proxy.json']
+        ports:
+        - containerPort: 12111 # stratum mining
+        - containerPort: 11112 # http mining
         imagePullPolicy: Always

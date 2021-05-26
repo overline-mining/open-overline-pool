@@ -27,5 +27,9 @@ spec:
     protocol: TCP
     port: 11200
     targetPort: 11200
+  - name: stratum-mining
+    port: 12111
+  - name: http-mining
+    port: 11112
   externalIPs:
   - 143.110.217.248
