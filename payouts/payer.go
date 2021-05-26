@@ -196,6 +196,7 @@ func (u *PayoutsProcessor) process() {
 		totalAmount.Add(totalAmount, big.NewInt(amount))
 		log.Printf("Paid %v Shannon to %v, TxHash: %v", amount, login, txHash)
 
+    /*
 		// Wait for TX confirmation before further payouts
 		for {
 			log.Printf("Waiting for tx confirmation: %v", txHash)
@@ -215,6 +216,7 @@ func (u *PayoutsProcessor) process() {
 				break
 			}
 		}
+    */
 	}
 
 	if mustPay > 0 {
