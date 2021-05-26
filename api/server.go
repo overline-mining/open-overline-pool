@@ -106,7 +106,7 @@ func (s *ApiServer) listen() {
 	r.HandleFunc("/api/miners", s.MinersIndex)
 	r.HandleFunc("/api/blocks", s.BlocksIndex)
 	r.HandleFunc("/api/payments", s.PaymentsIndex)
-	r.HandleFunc("/api/accounts/{login:[0-9a-zA-Z]{97}}", s.AccountIndex)
+	r.HandleFunc("/api/accounts/{login:^[0-9a-zA-Z]{97}([0-9a-zA-Z]{2})?$}", s.AccountIndex)
 	r.NotFoundHandler = http.HandlerFunc(notFound)
 	err := http.ListenAndServe(s.config.Listen, r)
 	if err != nil {
