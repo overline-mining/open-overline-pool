@@ -6,10 +6,14 @@ spec:
   selector:
     app: zano
   ports:
-    - name: rpc
-      protocol: TCP
-      port: 11211
-      targetPort: 11211
+  - name: rpc
+    protocol: TCP
+    port: 11211
+    targetPort: 11211
+  - name: wallet-rpc
+    protocol: TCP
+    port: 11212
+    targetPort: 11212
 ---
 apiVersion: v1
 kind: Service
@@ -19,9 +23,9 @@ spec:
   selector:
     app: zano
   ports:
-    - name: zano
-      protocol: TCP
-      port: 11121
-      targetPort: 11121
+  - name: zano
+    protocol: TCP
+    port: 11200
+    targetPort: 11200
   externalIPs:
   - 143.110.217.248

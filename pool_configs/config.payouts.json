@@ -8,17 +8,16 @@
     "followEndpoint": "redis-follower:6379",
 		"poolSize": 10,
 		"database": 0,
-		"password": "",
+		"password": ""
 	},
 
 	"payouts": {
 		"enabled": true,
 		"requirePeers":25,
 		"interval": "60m",
-		"daemon": "http://zano-svc:11211/json_rpc",
+		"daemon": "http://zano-svc:11212/json_rpc",
 		"timeout": "10s",
 		"address": "POOL_MINER_KEY",
-    "privateKey": "POOL_MINER_PRIVATE_KEY",
 		"gas": "21000",
 		"gasPrice": "50000000000",
 		"autoGas": true,

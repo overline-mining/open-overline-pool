@@ -1,9 +1,13 @@
 # the address the pool will mine to and that fees will be distributed from
-POOL_MINER_KEY=ZxCbHbiqZtDYcxXfAZPq6xg9HmrAHhcm5UEwfHN2XVkx8cj8tXPweZmXoBBhjztR6NGc2rWv3S7NpXbTRG4hTaGK2UQXeM2hA
+POOL_MINER_KEY=aZxawceva6adiytqiFKJLbcG6cgc36GuE6HkjQq9ttp8UyQbHiGGBULhtt55aixjDyH9CDXo9Ne4Z2BuomnEUep7fkntyej3HX1
 
 # a file containing the pool address's private key as a string
-POOL_MINER_PVT_KEY="${HOME}/.zano/pool_pkey"
+POOL_MINER_PWD="${HOME}/.zano/pool_pwd"
+
+# a file containing the pool's wallet, made with simplewallet.json
+# must match POOL_MINER_KEY
+POOL_MINER_WALLET="${HOME}/.zano/pool_dummy.keys"
 
 # the address where fees taken by pool are collected
-POOL_FEE_KEY=ZxCTXCBjQXFYKg9LHE2FU5hb492Cs58u9PcG3AJbVAMq7HojE4Yk4Jec4FirYiuEsWc5Vw13KN5dSNr39QiAwVAL217oMh8Up
+POOL_FEE_KEY=aZxbDULP1cQR1icd2cCJDkD7CNCbpwMNgWd1kQDmqmdnccdAchD4qSVcEUk1uDdHn45tb7U8Y4KGo6MPLXw8bWQ2SzRqyK85bSJ
 

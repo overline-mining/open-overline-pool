@@ -11,7 +11,7 @@
 		"behindReverseProxy": false,
 		"blockRefreshInterval": "120ms",
 		"stateUpdateInterval": "3s",
-    "difficulty": 900000000000,
+    "difficulty": 100000000,
 		"hashrateExpiration": "3h",
 
     "address": "POOL_MINER_KEY",

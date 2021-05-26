@@ -19,11 +19,14 @@ spec:
       - name: vol-zano-db
         persistentVolumeClaim:
           claimName: pvc-zano-db
+      - name: wallet
+        secret:
+          secretName: pool-wallet-file
       containers:
       - name: zano
         stdin: true
         tty: true
-        image: lgray/zano:latest
+        image: lgray/zano-testnet:latest
         volumeMounts:
         - mountPath: /home/zano/.Zano
           name: vol-zano-db
@@ -39,5 +42,27 @@ spec:
           containerPort: 11211
         - name: bcbootstrap
           protocol: TCP
-          containerPort: 11121
+          containerPort: 11200
+        imagePullPolicy: Always
+      - name: zano-wallet
+        stdin: true
+        tty: true
+        image: lgray/zano-testnet:latest
+        volumeMounts:
+        - mountPath: /home/zano/.Zano
+          name: vol-zano-db
+        - name: wallet
+          mountPath: "/wallet"
+        env:
+        - name: POOL_MINER_PWD
+          valueFrom:
+            secretKeyRef:
+              name: pool-miner-pwd
+              key: value
+        command: [./simplewallet]
+        args: ["--wallet-file","/wallet/pool_dummy.keys","--password","$(POOL_MINER_PWD)","--rpc-bind-ip","0.0.0.0","--rpc-bind-port","11212","--daemon-port","11211"]
+        ports:
+        - name: wallet-rpc
+          protocol: TCP
+          containerPort: 11212
         imagePullPolicy: Always

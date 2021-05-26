@@ -28,11 +28,6 @@ spec:
             secretKeyRef:
               name: pool-miner-key
               key: value 
-        - name: POOL_MINER_PRIVATE_KEY
-          valueFrom:
-            secretKeyRef:
-              name: pool-miner-private-key
-              key: value
         volumeMounts:
         - name: config
           mountPath: "/config"

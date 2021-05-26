@@ -5,6 +5,8 @@ kubectl delete secret proxy-config-file
 kubectl delete secret unlocker-config-file
 kubectl delete secret payouts-config-file
 
+kubectl delete secret pool-wallet-file
+
 kubectl delete secret pool-miner-key
-kubectl delete secret pool-miner-private-key
+kubectl delete secret pool-miner-pwd
 kubectl delete secret pool-fee-key
