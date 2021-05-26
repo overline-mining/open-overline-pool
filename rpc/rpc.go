@@ -108,6 +108,11 @@ type Transfer struct {
   Mixin        uint64 `json:"mixin"`
 }
 
+type TransferReply struct {
+  TxHash        string `json:"tx_hash"`
+  TxUnsignedHex string `json:"tx_unsigned_hex"`
+}
+  
 type GetInfoReply struct {
   OutgoingConnections uint64 `json:"outgoing_connections_count"`
 }
@@ -327,7 +332,7 @@ func (r *RPCClient) SendTransaction(destinations []TransferDestination, fee uint
   transfer.Fee = fee
   transfer.Mixin = mixin
   rpcResp, err := r.doPost(r.Url, "transfer", transfer)
-	var reply map[string]string
+	var reply TransferReply
 	if err != nil {
 		return "0x0", err
 	}
@@ -335,10 +340,10 @@ func (r *RPCClient) SendTransaction(destinations []TransferDestination, fee uint
 	if err != nil {
 		return "0x0", err
 	}
-	if util.IsZeroHash(reply["tx_hash"]) {
+	if util.IsZeroHash(reply.TxHash) {
 		err = errors.New("transaction is not yet available")
 	}
-	return "0x"+reply["tx_hash"], err
+	return "0x"+reply.TxHash, err
 }
 
 func (r *RPCClient) doPost(url string, method string, params interface{}) (*JSONRpcResp, error) {
