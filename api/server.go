@@ -106,7 +106,10 @@ func (s *ApiServer) listen() {
 	r.HandleFunc("/api/miners", s.MinersIndex)
 	r.HandleFunc("/api/blocks", s.BlocksIndex)
 	r.HandleFunc("/api/payments", s.PaymentsIndex)
-	r.HandleFunc("/api/accounts/{login:Zx[0-9a-zA-Z]{95,}$|login:iZ[0-9a-zA-Z]{95,}$|login:aZx[0-9a-zA-Z]{95,}$|login:aiZX[0-9a-zA-Z]{95,}$}", s.AccountIndex)
+	r.HandleFunc("/api/accounts/{login:Zx[0-9a-zA-Z]{95,}$}", s.AccountIndex)
+  r.HandleFunc("/api/accounts/{login:iZ[0-9a-zA-Z]{95,}$}", s.AccountIndex)
+  r.HandleFunc("/api/accounts/{login:aZx[0-9a-zA-Z]{95,}$}", s.AccountIndex)
+  r.HandleFunc("/api/accounts/{login:aiZX[0-9a-zA-Z]{95,}$}", s.AccountIndex)
 	r.NotFoundHandler = http.HandlerFunc(notFound)
 	err := http.ListenAndServe(s.config.Listen, r)
 	if err != nil {
@@ -249,6 +252,7 @@ func (s *ApiServer) AccountIndex(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-cache")
 
 	login := mux.Vars(r)["login"]
+  log.Println("Got login: %v", login)
 	s.minersMu.Lock()
 	defer s.minersMu.Unlock()
 
