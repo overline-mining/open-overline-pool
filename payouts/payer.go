@@ -131,7 +131,6 @@ func (u *PayoutsProcessor) process() {
   
 	for _, login := range payees {
 		amount, _ := u.backend.GetBalance(login)
-    tempAmounts[login] = amount
 		amountInShannon := big.NewInt(amount)
 
 		// Shannon^2 = Wei
@@ -147,6 +146,7 @@ func (u *PayoutsProcessor) process() {
 			break
 		}
 
+    tempAmounts[login] = amount
     value := amountInWei.Uint64()
     totalPayoutInWei.Add(totalPayoutInWei, amountInWei)
     var xferdest rpc.TransferDestination
@@ -173,8 +173,7 @@ func (u *PayoutsProcessor) process() {
       return
     }
     
-    for _, login := range payees {
-      amount := tempAmounts[login]
+    for login, amount := range tempAmounts {
 
 		  // Lock payments for current payout
   		err = u.backend.LockPayouts(login, amount)
@@ -204,7 +203,6 @@ func (u *PayoutsProcessor) process() {
        break
      }
     
-  
       minersPaid++
       totalAmount.Add(totalAmount, big.NewInt(amount))
       log.Printf("Paid %v Shannon to %v, TxHash: %v", amount, login, txHash)
