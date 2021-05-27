@@ -119,8 +119,19 @@ func (u *PayoutsProcessor) process() {
 		return
 	}
 
+  xferdests := []rpc.TransferDestination{}
+  tempAmounts := make(map[string]int64)
+  totalPayoutInWei := new(big.Int).SetInt64(0)
+  poolBalance, err := u.rpc_wallet.GetBalance()
+  if err != nil {
+      u.halt = true
+      u.lastFail = err
+      return
+  }
+  
 	for _, login := range payees {
 		amount, _ := u.backend.GetBalance(login)
+    tempAmounts[login] = amount
 		amountInShannon := big.NewInt(amount)
 
 		// Shannon^2 = Wei
@@ -136,67 +147,73 @@ func (u *PayoutsProcessor) process() {
 			break
 		}
 
-		// Check if we have enough funds
-		poolBalance, err := u.rpc_wallet.GetBalance()
-		if err != nil {
-			u.halt = true
-			u.lastFail = err
-			break
-		}
-		if poolBalance.Cmp(amountInWei) < 0 {
-			err := fmt.Errorf("Not enough balance for payment, need %s pZano, pool has %s pZano",
-				amountInWei.String(), poolBalance.String())
-			u.halt = true
-			u.lastFail = err
-			break
-		}
-
-		// Lock payments for current payout
-		err = u.backend.LockPayouts(login, amount)
-		if err != nil {
-			log.Printf("Failed to lock payment for %s: %v", login, err)
-			u.halt = true
-			u.lastFail = err
-			break
-		}
-		log.Printf("Locked payment for %s, %v Shannon", login, amount)
-
-		// Debit miner's balance and update stats
-		err = u.backend.UpdateBalance(login, amount)
-		if err != nil {
-			log.Printf("Failed to update balance for %s, %v Shannon: %v", login, amount, err)
-			u.halt = true
-			u.lastFail = err
-			break
-		}
-
-		value := amountInWei.Uint64()
+    value := amountInWei.Uint64()
+    totalPayoutInWei.Add(totalPayoutInWei, amountInWei)
     var xferdest rpc.TransferDestination
     xferdest.Amount = value
     xferdest.Address = login
-		txHash, err := u.rpc_wallet.SendTransaction([]rpc.TransferDestination{xferdest}, 10000000000, 0)
-		if err != nil {
-			log.Printf("Failed to send payment to %s, %v Shannon: %v. Check outgoing tx for %s in block explorer and docs/PAYOUTS.md",
-				login, amount, err, login)
-			u.halt = true
-			u.lastFail = err
-			break
-		}
+    xferdests = append(xferdests, xferdest)
+	}
 
-		// Log transaction hash
-		err = u.backend.WritePayment(login, txHash, amount)
-		if err != nil {
-			log.Printf("Failed to log payment data for %s, %v Shannon, tx: %s: %v", login, amount, txHash, err)
-			u.halt = true
-			u.lastFail = err
-			break
-		}
+  if mustPay > 0 {
+    if poolBalance.Cmp(totalPayoutInWei) < 0 {
+      err := fmt.Errorf("Not enough balance for payment, need %s pZano, pool has %s pZano",
+      totalPayoutInWei.String(), poolBalance.String())
+      u.halt = true
+      u.lastFail = err
+      return
+    }
 
-		minersPaid++
-		totalAmount.Add(totalAmount, big.NewInt(amount))
-		log.Printf("Paid %v Shannon to %v, TxHash: %v", amount, login, txHash)
+    txHash, err := u.rpc_wallet.SendTransaction(xferdests, 10000000000, 0)
+    if err != nil {
+      log.Printf("Failed to send payment to %v. Check outgoing tx for %s in block explorer and docs/PAYOUTS.md",
+        xferdests, txHash)
+      u.halt = true
+      u.lastFail = err
+      return
+    }
+    
+    for _, login := range payees {
+      amount := tempAmounts[login]
 
-    /*
+		  // Lock payments for current payout
+  		err = u.backend.LockPayouts(login, amount)
+  		if err != nil {
+  			log.Printf("Failed to lock payment for %s: %v", login, err)
+  			u.halt = true
+	  		u.lastFail = err
+		  	break
+	  	}
+	  	log.Printf("Locked payment for %s, %v Shannon", login, amount)
+
+	  	// Debit miner's balance and update stats
+   		err = u.backend.UpdateBalance(login, amount)
+	  	if err != nil {
+	  		log.Printf("Failed to update balance for %s, %v Shannon: %v", login, amount, err)
+	  		u.halt = true
+	  		u.lastFail = err
+	  		break
+	  	}
+
+      // Log transaction hash
+      err = u.backend.WritePayment(login, txHash, amount)
+      if err != nil {
+        log.Printf("Failed to log payment data for %s, %v Shannon, tx: %s: %v", login, amount, txHash, err)
+       u.halt = true
+       u.lastFail = err
+       break
+     }
+    
+  
+      minersPaid++
+      totalAmount.Add(totalAmount, big.NewInt(amount))
+      log.Printf("Paid %v Shannon to %v, TxHash: %v", amount, login, txHash)
+    }
+  }
+
+  /*
+  for _, login := range payees {
+
 		// Wait for TX confirmation before further payouts
 		for {
 			log.Printf("Waiting for tx confirmation: %v", txHash)
@@ -216,8 +233,8 @@ func (u *PayoutsProcessor) process() {
 				break
 			}
 		}
-    */
 	}
+  */
 
 	if mustPay > 0 {
 		log.Printf("Paid total %v Shannon to %v of %v payees", totalAmount, minersPaid, mustPay)
