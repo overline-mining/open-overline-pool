@@ -252,7 +252,6 @@ func (s *ApiServer) AccountIndex(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-cache")
 
 	login := mux.Vars(r)["login"]
-  log.Println("Got login: %v", login)
 	s.minersMu.Lock()
 	defer s.minersMu.Unlock()
 
