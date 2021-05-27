@@ -9,7 +9,6 @@ import (
 	"math/big"
 	"net/http"
 	"strconv"
-	"strings"
 	"sync"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -98,6 +97,26 @@ type SubmitBlockReply struct {
 
 const receiptStatusSuccessful = "0x1"
 
+type TransferDestination struct {
+  Address string `json:"address"`
+  Amount  uint64 `json:"amount"`
+}
+
+type Transfer struct {
+  Destinations []TransferDestination `json:"destinations"`
+  Fee          uint64 `json:"fee"`
+  Mixin        uint64 `json:"mixin"`
+}
+
+type TransferReply struct {
+  TxHash        string `json:"tx_hash"`
+  TxUnsignedHex string `json:"tx_unsigned_hex"`
+}
+  
+type GetInfoReply struct {
+  OutgoingConnections uint64 `json:"outgoing_connections_count"`
+}
+    
 type TxReceipt struct {
 	TxHash    string `json:"transactionHash"`
 	GasUsed   string `json:"gasUsed"`
@@ -264,17 +283,17 @@ func (r *RPCClient) SubmitBlock(params []string) (bool, error) {
 	return false, err
 }
 
-func (r *RPCClient) GetBalance(address string) (*big.Int, error) {
-	rpcResp, err := r.doPost(r.Url, "eth_getBalance", []string{address, "latest"})
+func (r *RPCClient) GetBalance() (*big.Int, error) {
+	rpcResp, err := r.doPost(r.Url, "getbalance", nil)
 	if err != nil {
 		return nil, err
 	}
-	var reply string
+	var reply map[string]uint64
 	err = json.Unmarshal(*rpcResp.Result, &reply)
 	if err != nil {
 		return nil, err
 	}
-	return util.String2Big(reply), err
+	return new(big.Int).SetUint64(reply["unlocked_balance"]), err
 }
 
 func (r *RPCClient) Sign(from string, s string) (string, error) {
@@ -294,46 +313,37 @@ func (r *RPCClient) Sign(from string, s string) (string, error) {
 	return reply, err
 }
 
-func (r *RPCClient) GetPeerCount() (int64, error) {
-	rpcResp, err := r.doPost(r.Url, "net_peerCount", nil)
+func (r *RPCClient) GetPeerCount() (uint64, error) {
+	rpcResp, err := r.doPost(r.Url, "getinfo", nil)
 	if err != nil {
 		return 0, err
 	}
-	var reply string
+	var reply GetInfoReply
 	err = json.Unmarshal(*rpcResp.Result, &reply)
 	if err != nil {
 		return 0, err
 	}
-	return strconv.ParseInt(strings.Replace(reply, "0x", "", -1), 16, 64)
+	return reply.OutgoingConnections, err
 }
 
-func (r *RPCClient) SendTransaction(from, to, gas, gasPrice, value string, autoGas bool) (string, error) {
-	params := map[string]string{
-		"from":  from,
-		"to":    to,
-		"value": value,
-	}
-	if !autoGas {
-		params["gas"] = gas
-		params["gasPrice"] = gasPrice
-	}
-	rpcResp, err := r.doPost(r.Url, "eth_sendTransaction", []interface{}{params})
-	var reply string
+func (r *RPCClient) SendTransaction(destinations []TransferDestination, fee uint64, mixin uint64) (string, error) {
+  var transfer Transfer
+  transfer.Destinations = destinations
+  transfer.Fee = fee
+  transfer.Mixin = mixin
+  rpcResp, err := r.doPost(r.Url, "transfer", transfer)
+	var reply TransferReply
 	if err != nil {
-		return reply, err
+		return "0x0", err
 	}
 	err = json.Unmarshal(*rpcResp.Result, &reply)
 	if err != nil {
-		return reply, err
+		return "0x0", err
 	}
-	/* There is an inconsistence in a "standard". Geth returns error if it can't unlock signer account,
-	 * but Parity returns zero hash 0x000... if it can't send tx, so we must handle this case.
-	 * https://github.com/ethereum/wiki/wiki/JSON-RPC#returns-22
-	 */
-	if util.IsZeroHash(reply) {
+	if util.IsZeroHash(reply.TxHash) {
 		err = errors.New("transaction is not yet available")
 	}
-	return reply, err
+	return "0x"+reply.TxHash, err
 }
 
 func (r *RPCClient) doPost(url string, method string, params interface{}) (*JSONRpcResp, error) {

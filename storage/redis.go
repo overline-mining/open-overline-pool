@@ -842,7 +842,6 @@ func convertCandidateResults(raw *redis.ZSliceCmd) []*BlockData {
 		block.Height = int64(v.Score)
 		block.RoundHeight = block.Height
 		fields := strings.Split(v.Member.(string), ":")
-    fmt.Printf("convertCandidateResults -> %v", fields)
 		block.Nonce = fields[0]
 		block.PowHash = fields[1]
 		block.MixDigest = fields[2]

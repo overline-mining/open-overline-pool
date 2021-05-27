@@ -19,7 +19,7 @@ const txCheckInterval = 5 * time.Second
 
 type PayoutsConfig struct {
 	Enabled      bool   `json:"enabled"`
-	RequirePeers int64  `json:"requirePeers"`
+	RequirePeers uint64 `json:"requirePeers"`
 	Interval     string `json:"interval"`
 	Daemon       string `json:"daemon"`
   Wallet       string `json:"wallet"`
@@ -135,21 +135,16 @@ func (u *PayoutsProcessor) process() {
 		if !u.checkPeers() {
 			break
 		}
-		// Require unlocked account
-		if !u.isUnlockedAccount() {
-			break
-		}
 
 		// Check if we have enough funds
-    poolAddress := os.Getenv(u.config.Address)
-		poolBalance, err := u.rpc_wallet.GetBalance(poolAddress)
+		poolBalance, err := u.rpc_wallet.GetBalance()
 		if err != nil {
 			u.halt = true
 			u.lastFail = err
 			break
 		}
 		if poolBalance.Cmp(amountInWei) < 0 {
-			err := fmt.Errorf("Not enough balance for payment, need %s Wei, pool has %s Wei",
+			err := fmt.Errorf("Not enough balance for payment, need %s pZano, pool has %s pZano",
 				amountInWei.String(), poolBalance.String())
 			u.halt = true
 			u.lastFail = err
@@ -175,8 +170,11 @@ func (u *PayoutsProcessor) process() {
 			break
 		}
 
-		value := hexutil.EncodeBig(amountInWei)
-		txHash, err := u.rpc_wallet.SendTransaction(u.config.Address, login, u.config.GasHex(), u.config.GasPriceHex(), value, u.config.AutoGas)
+		value := amountInWei.Uint64()
+    var xferdest rpc.TransferDestination
+    xferdest.Amount = value
+    xferdest.Address = login
+		txHash, err := u.rpc_wallet.SendTransaction([]rpc.TransferDestination{xferdest}, 10000000000, 0)
 		if err != nil {
 			log.Printf("Failed to send payment to %s, %v Shannon: %v. Check outgoing tx for %s in block explorer and docs/PAYOUTS.md",
 				login, amount, err, login)
@@ -198,6 +196,7 @@ func (u *PayoutsProcessor) process() {
 		totalAmount.Add(totalAmount, big.NewInt(amount))
 		log.Printf("Paid %v Shannon to %v, TxHash: %v", amount, login, txHash)
 
+    /*
 		// Wait for TX confirmation before further payouts
 		for {
 			log.Printf("Waiting for tx confirmation: %v", txHash)
@@ -217,6 +216,7 @@ func (u *PayoutsProcessor) process() {
 				break
 			}
 		}
+    */
 	}
 
 	if mustPay > 0 {
