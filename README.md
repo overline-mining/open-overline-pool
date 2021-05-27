@@ -1,6 +1,6 @@
-## Open Source Overline Mining Pool
+## Open Source Zano Mining Pool
 
-![Miner's stats page](https://user-images.githubusercontent.com/1068089/106371835-e4035080-632e-11eb-9fdc-73c3bb420b5b.png)
+![Miner's stats page](https://user-images.githubusercontent.com/1068089/119762891-29b2ce80-be74-11eb-8d9b-20472d69ee48.png)
 
 ### Features
 
@@ -22,7 +22,7 @@
 Dependencies:
 
   * go >= 1.13
-  * bcnode (does it even have versions at this point, it's more a stream of consciousness)
+  * zano 
   * redis-server >= 2.8.0
   * nodejs ~ 10 LTS
   * nginx
@@ -34,7 +34,7 @@ This whole installation is containerized and comes with a full kubernetes based 
 Below we will walk through instructions for running the pool on minikube in a testing environment.
 
 
-1. Clone this repository `git clone https://github.com/overline-mining/open-overline-pool.git`
+1. Clone this repository `git clone https://github.com/zano-mining/open-zano-pool.git`
 
 2. Install [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
 
@@ -43,7 +43,7 @@ Below we will walk through instructions for running the pool on minikube in a te
 4. Setup secrets:
 
     ```bash
-    cd open-overline-pool/k8s
+    cd open-zano-pool/k8s
     # NOTE -->  edit the file "config" to contain whatever addresses, http auth passwords, and keys you wish to use
     ./make-secrets.sh
     ```
@@ -52,13 +52,9 @@ Below we will walk through instructions for running the pool on minikube in a te
 
     ```bash
     cd open-overline-pool/k8s
-    kubectl apply -f bcnode/
-    ./upload-db.sh $(kubectl get pods | grep bcnode | awk '{print $1}') /path/to/chainstate.tar.gz
-    # wait for a bit for the node's initialization container to unpack the chainstate
-    # follow progress with
-    kubectl logs $(kubectl get pods | grep bcnode | awk '{print $1}') -c get-bcnode-db-container -f --tail 10
+    kubectl apply -f zano/  
     # once that is done follow the bcnode logs and wait for it to sync
-    kubectl logs $(kubectl get pods | grep bcnode | awk '{print $1}') -c bcnode -f --tail 10
+    kubectl logs $(kubectl get pods | grep zano | awk '{print $1}') -c zano -f --tail 10
     ```
 
 6. While the bcnode is syncing, setup redis.
@@ -67,7 +63,7 @@ Below we will walk through instructions for running the pool on minikube in a te
     kubectl apply -f redis/
     ```
 
-7. Once the bcnode is synced bring open-overline-pool online as follows:
+7. Once the bcnode is synced bring open-zano-pool online as follows:
 
     ```bash
     kubectl apply -f open-overline-pool/
@@ -312,6 +308,8 @@ Originally made by sammy007, modifications for overline and kubernetes by lgray.
 ### Donations are highly appreciated!
 
 ETH/OL: `0xf34fa87db39d15471bebe997860dcd49fc259318`
+
+ZANO: `ZxBuuR83tRxCsXYU2fNiCLGmpinhbCxMj1Swr9vCV2ERjdBsdSYMK6gfBf5bzsGHqpU81xTrKbmHrhiKmiPrz1WL1n2yngUym`
 
 BTC: `13xBjyBFeqiW1eipFGiS1YQvw9HMuAx3bp`
 
