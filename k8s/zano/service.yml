@@ -25,8 +25,8 @@ spec:
   ports:
   - name: zano
     protocol: TCP
-    port: 11200
-    targetPort: 11200
+    port: 11121
+    targetPort: 11121
   - name: stratum-mining
     port: 12111
   - name: http-mining

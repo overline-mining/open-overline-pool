@@ -23,6 +23,8 @@ spec:
       - name: oovp-test-container
         image: lgray/open-zano-pool-api:latest
         env:
+        - name: RESOLVE_PAYOUT
+          value: "0"
         - name: POOL_MINER_KEY
           valueFrom:
             secretKeyRef:

@@ -29,7 +29,7 @@ spec:
       - name: zano
         stdin: true
         tty: true
-        image: lgray/zano-testnet:latest
+        image: lgray/zano:latest
         volumeMounts:
         - mountPath: /home/zano/.Zano
           name: vol-zano-db
@@ -45,12 +45,12 @@ spec:
           containerPort: 11211
         - name: bcbootstrap
           protocol: TCP
-          containerPort: 11200
+          containerPort: 11121
         imagePullPolicy: Always
       - name: zano-wallet
         stdin: true
         tty: true
-        image: lgray/zano-testnet:latest
+        image: lgray/zano:latest
         volumeMounts:
         - mountPath: /home/zano/.Zano
           name: vol-zano-db

@@ -19,7 +19,7 @@
 		"depth": 100,
 		"immatureDepth": 16,
 		"keepTxFees": false,
-		"interval": "10s",
+		"interval": "30s",
 		"daemon": "http://zano-svc:11211/json_rpc",
 		"timeout": "10s"
 	},
