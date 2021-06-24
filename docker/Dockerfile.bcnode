@@ -15,7 +15,7 @@ COPY bcnode/multiverse.patch /tmp
 
 RUN patch ./lib/mining/officer.js /tmp/officer.js.patch
 
-RUN patch ./lib/bc/validation.js /tmp/validation.patch
+# RUN patch ./lib/bc/validation.js /tmp/validation.patch
 
 # RUN patch ./lib/bc/multiverse.js /tmp/multiverse.patch
 
