@@ -21,7 +21,7 @@ spec:
           claimName: pvc-bcnode-db
       containers:
       - name: bcnode
-        image: lgray/bcnode:latest
+        image: blockcollider/bcnode:latest
         volumeMounts:
         - mountPath: /bc/_data
           name: vol-bcnode-db
@@ -44,8 +44,10 @@ spec:
           value: "main"
         - name: MIN_HEALTH_NET
           value: "true"
-        - name: BC_RPC_MINER
+        - name: BC_GRPC_MINER
           value: "true"
+        - name: BC_GRPC_MINER_ADDRESS
+          value: "0.0.0.0:50052"
         - name: BC_MINER_WORKERS
           value: "1"
         - name: NODE_OPTIONS
@@ -86,16 +88,16 @@ spec:
           name: vol-bcnode-db
         command: ['sh','-c']
         args:
-        - if [ ! -d "/data/db" ]; then
+        - rm -r /data/db/IDENTITY;
+          if [ ! -d "/data/db" ]; then
             echo "nameserver 8.8.8.8" >> /etc/resolv.conf;
             echo "nameserver 8.8.4.4" >> /etc/resolv.conf;
             apt-get update && apt-get install -y wget unzip;
             until [ -f .uploaded ]; do sleep 1; ls -lh _easysync_db.tar.gz; done;
-            tar -xvzf _easysync_db.tar.gz -C /data --strip-components=2;
+            tar -xvzf _easysync_db.tar.gz -C /data --strip-components=1;
             rm /data/db/IDENTITY;
             rm /data/.chainstate.db;
             rm _easysync_db.tar.gz;
             rm .uploaded;
           fi;
-          echo "done!";
-    # The pod template ends here
+          echo "done!"
