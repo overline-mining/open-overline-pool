@@ -75,7 +75,6 @@ Below we will walk through instructions for running the pool on minikube in a te
     ```
 
 8. You should now be able to point a browser to `localhost` and see the splash page. You can also test that the pool is accepting jobs by pointing a overline-compatible stratum miner at it.
-9. Edit `k8s/bcnode/deployment.yml` to change the line `- rm -r /data/db;` to `- rm -r /data/db/IDENTITY;` once you have fully synced the node. This change is necessary to allow the node to pick up from where it left off every time instead of loading in from the snapshot as in step 5.
 
 #### Customization
 
