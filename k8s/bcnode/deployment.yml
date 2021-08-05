@@ -88,7 +88,7 @@ spec:
           name: vol-bcnode-db
         command: ['sh','-c']
         args:
-        - rm -r /data/db/IDENTITY;
+        - rm -r /data/db;
           if [ ! -d "/data/db" ]; then
             echo "nameserver 8.8.8.8" >> /etc/resolv.conf;
             echo "nameserver 8.8.4.4" >> /etc/resolv.conf;
