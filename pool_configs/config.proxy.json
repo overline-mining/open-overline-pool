@@ -54,7 +54,7 @@
 		{
 			"name": "main",
       "url": "http://overline:3000/rpc",
-      "urlMining": "http://localhost:3001",
+      "urlMining": "http://overline:3001",
       "scookie": "POOL_NODE_SCOOKIE",
 			"timeout": "10s"
 		},
