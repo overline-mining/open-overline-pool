@@ -40,7 +40,14 @@ Below we will walk through instructions for running the pool on minikube in a te
 
 3. Install [minikube](https://minikube.sigs.k8s.io/docs/start/#binary-download)
 
-4. Setup secrets:
+4. Update bcnode image:
+
+    ```bash
+    cd open-overline-pool/docker
+    ./build-images.sh
+    ```
+
+5. Setup secrets:
 
     ```bash
     cd open-overline-pool/k8s
@@ -48,7 +55,7 @@ Below we will walk through instructions for running the pool on minikube in a te
     ./make-secrets.sh
     ```
 
-5. Initialize bcnode (you will need a chainstate snapshot saved as a `.tar.gz` file):
+6. Initialize bcnode (you will need a chainstate snapshot saved as a `.tar.gz` file):
 
     ```bash
     cd open-overline-pool/k8s
@@ -61,20 +68,20 @@ Below we will walk through instructions for running the pool on minikube in a te
     kubectl logs $(kubectl get pods | grep bcnode | awk '{print $1}') -c bcnode -f --tail 10
     ```
 
-6. While the bcnode is syncing, setup redis.
+7. While the bcnode is syncing, setup redis.
 
     ```bash
     kubectl apply -f redis/
     ```
 
-7. Once the bcnode is synced bring open-overline-pool online as follows:
+8. Once the bcnode is synced bring open-overline-pool online as follows:
 
     ```bash
     kubectl apply -f open-overline-pool/
     ./local-port-forward.sh
     ```
 
-8. You should now be able to point a browser to `localhost` and see the splash page. You can also test that the pool is accepting jobs by pointing a overline-compatible stratum miner at it.
+9. You should now be able to point a browser to `localhost` and see the splash page. You can also test that the pool is accepting jobs by pointing a overline-compatible stratum miner at it.
 
 #### Customization
 

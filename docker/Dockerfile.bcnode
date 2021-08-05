@@ -3,20 +3,20 @@ FROM blockcollider/bcnode
 RUN apt-get update && apt-get install -y --no-install-recommends libfile-slurp-perl patch && rm -rf /var/lib/apt/lists/*
 
 # Custom entrypoint
-COPY bcnode/docker-entrypoint.sh /
+#COPY bcnode/docker-entrypoint.sh /
 
-COPY bcnode/monkey-patch /tmp
+#COPY bcnode/monkey-patch /tmp
 
-COPY bcnode/officer.js.patch /tmp
+#COPY bcnode/officer.js.patch /tmp
 
-COPY bcnode/validation.patch /tmp
+#COPY bcnode/validation.patch /tmp
 
-COPY bcnode/multiverse.patch /tmp
+#COPY bcnode/multiverse.patch /tmp
 
-RUN patch ./lib/mining/officer.js /tmp/officer.js.patch
+#RUN patch ./lib/mining/officer.js /tmp/officer.js.patch
 
 # RUN patch ./lib/bc/validation.js /tmp/validation.patch
 
 # RUN patch ./lib/bc/multiverse.js /tmp/multiverse.patch
 
-ENTRYPOINT [ "/docker-entrypoint.sh" ]
+#ENTRYPOINT [ "/docker-entrypoint.sh" ]

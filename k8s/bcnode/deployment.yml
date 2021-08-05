@@ -21,7 +21,7 @@ spec:
           claimName: pvc-bcnode-db
       containers:
       - name: bcnode
-        image: lgray/bcnode:latest
+        image: blockcollider/bcnode:latest
         volumeMounts:
         - mountPath: /bc/_data
           name: vol-bcnode-db
@@ -44,8 +44,10 @@ spec:
           value: "main"
         - name: MIN_HEALTH_NET
           value: "true"
-        - name: BC_RPC_MINER
+        - name: BC_GRPC_MINER
           value: "true"
+        - name: BC_GRPC_MINER_ADDRESS
+          value: "0.0.0.0:50052"
         - name: BC_MINER_WORKERS
           value: "1"
         - name: NODE_OPTIONS
