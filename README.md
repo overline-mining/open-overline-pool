@@ -80,7 +80,6 @@ Below we will walk through instructions for running the pool on minikube in a te
           echo "done!";
     
     #Exit and save the file once edited
-    
     ```
 
 6. Initialize bcnode (you will need a chainstate snapshot saved as a `.tar.gz` file):
