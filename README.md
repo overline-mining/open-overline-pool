@@ -49,12 +49,12 @@ Below we will walk through instructions for running the pool on minikube in a te
 
 5.1 Setup secrets:
 
-  ```bash
-    cd open-overline-pool/k8s
-    # NOTE -->  edit the file "config" to contain whatever addresses, http auth passwords, and keys you wish to use
-    ./make-secrets.sh
-    # NOTE --> you will need to re-run this after you changed something, or part of the pool wont work
-  ```
+    ```bash
+      cd open-overline-pool/k8s
+      # NOTE -->  edit the file "config" to contain whatever addresses, http auth passwords, and keys you wish to use
+      ./make-secrets.sh
+      # NOTE --> you will need to re-run this after you changed something, or part of the pool wont work
+    ```
 
 5.2 Set the bcnode to bootstrap mode:
     
