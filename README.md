@@ -47,12 +47,38 @@ Below we will walk through instructions for running the pool on minikube in a te
     ./build-images.sh
     ```
 
-5. Setup secrets:
+5.1 Setup secrets:
 
     ```bash
     cd open-overline-pool/k8s
     # NOTE -->  edit the file "config" to contain whatever addresses, http auth passwords, and keys you wish to use
-    ./make-secrets.sh
+    ./make-secrets.sh```
+    # NOTE --> you will need to re-run this after you changed something, or part of the pool wont work
+
+5.2 Set the bcnode to bootstrap mode:
+    ```bash
+    nano open-overline-pool/bcnode/deployment.yml
+    # NOTE -->  edit the file way at the bottom to this:
+    
+             name: vol-bcnode-db
+        command: ['sh','-c']
+        args:
+        - rm -r /data/db;     # !!!!!!!To start the bootstrap mode, it will fail if this isnt included
+          if [ ! -d "/data/db" ]; then
+            echo "nameserver 8.8.8.8" >> /etc/resolv.conf;
+            echo "nameserver 8.8.4.4" >> /etc/resolv.conf;
+            apt-get update && apt-get install -y wget unzip;
+            until [ -f .uploaded ]; do sleep 1; ls -lh _easysync_db.tar.gz; done;
+            tar -xvzf _easysync_db.tar.gz -C /data --strip-components=1;   #!!!! set --strip-components to 1        
+            rm /data/db/IDENTITY;
+            rm /data/.chainstate.db;
+            rm _easysync_db.tar.gz;
+            rm .uploaded;
+          fi;
+          echo "done!";
+    
+    #Exit and save the file once edited
+    
     ```
 
 6. Initialize bcnode (you will need a chainstate snapshot saved as a `.tar.gz` file):
@@ -74,14 +100,47 @@ Below we will walk through instructions for running the pool on minikube in a te
     kubectl apply -f redis/
     ```
 
-8. Once the bcnode is synced bring open-overline-pool online as follows:
+8. Once the node has fully synced, change the node deployment.yml back from Bootstrap mode, so it wont clear itself on every start
+
+    ```bash
+    
+    nano /bcnode/deployment.yml
+    # NOTE -->  edit the file way at the bottom to this:
+    
+             name: vol-bcnode-db
+        command: ['sh','-c']
+        args:
+        - rm -r /data/db/IDENTITY;     # !!!!!!!To prevent the bootstrap, so the node wont wipe itself on startup
+          if [ ! -d "/data/db" ]; then
+            echo "nameserver 8.8.8.8" >> /etc/resolv.conf;
+            echo "nameserver 8.8.4.4" >> /etc/resolv.conf;
+            apt-get update && apt-get install -y wget unzip;
+            until [ -f .uploaded ]; do sleep 1; ls -lh _easysync_db.tar.gz; done;
+            tar -xvzf _easysync_db.tar.gz -C /data --strip-components=1;       
+            rm /data/db/IDENTITY;
+            rm /data/.chainstate.db;
+            rm _easysync_db.tar.gz;
+            rm .uploaded;
+          fi;
+          echo "done!";
+
+    # Exit and save the file after you changed it.
+
+    # Then we need to kill the node to apply the settings.
+    kubectl delete -f bcnode/deployment.yml
+    # Now lets apply the settings
+    kubectl apply -f bcnode/deployment.yml
+
+    ```
+
+9. Once the bcnode is back up and synced again we bring open-overline-pool online as follows:
 
     ```bash
     kubectl apply -f open-overline-pool/
     ./local-port-forward.sh
     ```
 
-9. You should now be able to point a browser to `localhost` and see the splash page. You can also test that the pool is accepting jobs by pointing a overline-compatible stratum miner at it.
+10. You should now be able to point a browser to `localhost` and see the splash page. You can also test that the pool is accepting jobs by pointing a overline-compatible stratum miner at it.
 
 #### Customization
 
