@@ -52,10 +52,12 @@ Below we will walk through instructions for running the pool on minikube in a te
     ```bash
     cd open-overline-pool/k8s
     # NOTE -->  edit the file "config" to contain whatever addresses, http auth passwords, and keys you wish to use
-    ./make-secrets.sh```
+    ./make-secrets.sh
     # NOTE --> you will need to re-run this after you changed something, or part of the pool wont work
+    ```
 
 5.2 Set the bcnode to bootstrap mode:
+    
     ```bash
     nano open-overline-pool/bcnode/deployment.yml
     # NOTE -->  edit the file way at the bottom to this:
