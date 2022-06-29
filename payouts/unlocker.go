@@ -466,7 +466,7 @@ func (u *BlockUnlocker) calculateRewards(block *storage.BlockData) (*big.Rat, *b
 		rewards[login] += weiToShannonInt64(donation)
 	}
 
-	poolFeeAddress := os.Getenv(cfg.PoolFeeAddress)
+	poolFeeAddress := os.Getenv(u.config.PoolFeeAddress)
 	if len(poolFeeAddress) != 0 {
 		address := strings.ToLower(poolFeeAddress)
 		rewards[address] += weiToShannonInt64(poolProfit)
