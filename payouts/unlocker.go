@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"log"
 	"math/big"
+	"os"
 	"strconv"
 	"strings"
 	"time"
-  "os"
 
 	"github.com/ethereum/go-ethereum/common/math"
 
@@ -26,7 +26,8 @@ type UnlockerConfig struct {
 	KeepTxFees     bool    `json:"keepTxFees"`
 	Interval       string  `json:"interval"`
 	Daemon         string  `json:"daemon"`
-  SCookie        string  `json:"scookie"`
+	Gool           string  `json:"gool"`
+	SCookie        string  `json:"scookie"`
 	Timeout        string  `json:"timeout"`
 }
 
@@ -34,7 +35,7 @@ const minDepth = 16
 
 var afterTargetReward = math.MustParseBig256("1000000000000000000")
 
-// Donate 10% from pool fees to developers
+// Donate 10% from pool fees to developer
 const donationFee = 10.0
 const donationAccount = "0xf34fa87db39d15471bebe997860dcd49fc259318"
 
@@ -47,7 +48,7 @@ type BlockUnlocker struct {
 }
 
 func NewBlockUnlocker(cfg *UnlockerConfig, backend *storage.RedisClient) *BlockUnlocker {
-  poolFeeAddress := os.Getenv(cfg.PoolFeeAddress)
+	poolFeeAddress := os.Getenv(cfg.PoolFeeAddress)
 	if len(poolFeeAddress) != 0 && !util.IsValidHexAddress(poolFeeAddress) {
 		log.Fatalln("Invalid poolFeeAddress", poolFeeAddress)
 	}
@@ -58,8 +59,8 @@ func NewBlockUnlocker(cfg *UnlockerConfig, backend *storage.RedisClient) *BlockU
 		log.Fatalf("Immature depth can't be < %v, your depth is %v", minDepth, cfg.ImmatureDepth)
 	}
 	u := &BlockUnlocker{config: cfg, backend: backend}
-  SCookie := os.Getenv(cfg.SCookie)
-	u.rpc = rpc.NewRPCClient("BlockUnlocker", cfg.Daemon, SCookie, cfg.Timeout)
+	SCookie := os.Getenv(cfg.SCookie)
+	u.rpc = rpc.NewRPCClient("BlockUnlocker", cfg.Daemon, cfg.Gool, SCookie, cfg.Timeout)
 	return u
 }
 
@@ -101,46 +102,46 @@ func (u *BlockUnlocker) unlockCandidates(candidates []*storage.BlockData) (*Unlo
 	for _, candidate := range candidates {
 		orphan := true
 
-  	height := candidate.Height
-    hash := candidate.Hash
-    
-  	if height < 0 {
+		height := candidate.Height
+		hash := candidate.Hash
+
+		if height < 0 {
 			continue
 		}
 
-    nextHeight := height + 1
-  
-    blockByHash, errHash := u.rpc.GetBlockByHash(hash)
+		nextHeight := height + 1
+
+		blockByHash, errHash := u.rpc.GetBlockByHash(hash)
 		nextBlockByHeight, errHeight := u.rpc.GetBlockByHeight(nextHeight)
 
-    //log.Println("---- block by height ----")
-    //log.Println(blockByHeight)
-    //log.Println("---- block by hash ----")
-    //log.Println(blockByHash)
-  
+		//log.Println("---- block by height ----")
+		//log.Println(blockByHeight)
+		//log.Println("---- block by hash ----")
+		//log.Println(blockByHash)
+
 		if errHeight != nil {
-			log.Printf("Error while retrieving block %v from node: %v", height, errHeight)
+			log.Printf("while retrieving block %v from node: %v", height, errHeight)
 			return nil, errHeight
 		}
-    if errHash != nil {
-      log.Printf("Error while retrieving block %v from node: %v ", hash, errHash)
-      //return nil, errHash
-    }
+		if errHash != nil {
+			log.Printf("while retrieving block %v from node: %v ", hash, errHash)
+			//return nil, errHash
+		}
 		if nextBlockByHeight == nil {
 			return nil, fmt.Errorf("Error while retrieving block %v from node, wrong node height", height)
 		}
-    if blockByHash == nil {
-      log.Printf("Error while retrieving block %v from node, wrong node hash", hash)
-    }
+		if blockByHash == nil {
+			log.Printf("Error while retrieving block %v from node, wrong node hash", hash)
+		}
 
-    hashFound := matchCandidate(blockByHash, candidate)
-    foundAsPreviousHash := matchCandidateByPreviousHash(nextBlockByHeight, candidate)
-  
+		hashFound := matchCandidate(blockByHash, candidate)
+		foundAsPreviousHash := matchCandidateByPreviousHash(nextBlockByHeight, candidate)
+
 		if foundAsPreviousHash && hashFound { // it is a reward block
 			orphan = false
 			result.blocks++
 
-  		err := u.handleBlock(blockByHash, candidate)
+			err := u.handleBlock(blockByHash, candidate)
 			if err != nil {
 				u.halt = true
 				u.lastFail = err
@@ -149,22 +150,22 @@ func (u *BlockUnlocker) unlockCandidates(candidates []*storage.BlockData) (*Unlo
 
 			result.maturedBlocks = append(result.maturedBlocks, candidate)
 			log.Printf("Mature block %v with %v tx, hash: %v", candidate.Height, len(blockByHash.TxsList), candidate.Hash[0:10], util.FormatReward(candidate.Reward))
-      log.Println("Mature block key: ", candidate.RedisKey())
+			log.Println("Mature block key: ", candidate.RedisKey())
 			break
 		} else if hashFound { // it is an uncle
-      orphan = false
-      result.uncles++
+			orphan = false
+			result.uncles++
 
-      err := handleUncle(height, blockByHash, candidate)
-      if err != nil {
-        u.halt = true
-        u.lastFail = err
-        return nil, err
-      }
-      result.maturedBlocks = append(result.maturedBlocks, candidate)
-      log.Printf("Mature uncle %v/%v of reward %v with hash: %v", candidate.Height, candidate.UncleHeight, util.FormatReward(candidate.Reward), blockByHash.Hash[0:10])
-      log.Println("Mature uncle key: ", candidate.RedisKey())
-    } 
+			err := handleUncle(height, blockByHash, candidate)
+			if err != nil {
+				u.halt = true
+				u.lastFail = err
+				return nil, err
+			}
+			result.maturedBlocks = append(result.maturedBlocks, candidate)
+			log.Printf("Mature uncle %v/%v of reward %v with hash: %v", candidate.Height, candidate.UncleHeight, util.FormatReward(candidate.Reward), blockByHash.Hash[0:10])
+			log.Println("Mature uncle key: ", candidate.RedisKey())
+		}
 
 		// Block is lost, we didn't find any valid block or uncle matching our data in a blockchain
 		if orphan {
@@ -172,30 +173,30 @@ func (u *BlockUnlocker) unlockCandidates(candidates []*storage.BlockData) (*Unlo
 			candidate.Orphan = true
 			result.orphanedBlocks = append(result.orphanedBlocks, candidate)
 			log.Printf("Orphaned block %v:%v/%v", candidate.RoundHeight, candidate.Hash, candidate.Nonce)
-      log.Println("Orphans block key: ", candidate.RedisKey())
+			log.Println("Orphans block key: ", candidate.RedisKey())
 		}
-  }
+	}
 	return result, nil
 }
 
 func matchCandidateByPreviousHash(nextBlock *rpc.BcBlockReply, candidate *storage.BlockData) bool {
-  if nextBlock == nil {
-    return false
-  }
-  // Just compare hash to previous hash of next block if block is unlocked as immature
-  if ( len(candidate.Hash) > 0 && strings.EqualFold(candidate.Hash, nextBlock.PreviousHash) ) {
-    return true
-  }
-   return false
+	if nextBlock == nil {
+		return false
+	}
+	// Just compare hash to previous hash of next block if block is unlocked as immature
+	if len(candidate.Hash) > 0 && strings.EqualFold(candidate.Hash, nextBlock.PreviousHash) {
+		return true
+	}
+	return false
 }
 
 func matchCandidate(block *rpc.BcBlockReply, candidate *storage.BlockData) bool {
-  if block == nil {
-    return false
-  }
+	if block == nil {
+		return false
+	}
 	// Just compare hash and nonce if block is unlocked as immature
-	if ( len(candidate.Hash) > 0 && strings.EqualFold(candidate.Hash, block.Hash) &&
-       len(candidate.Nonce) > 0 && strings.EqualFold(candidate.Nonce, block.Nonce) ) {
+	if len(candidate.Hash) > 0 && strings.EqualFold(candidate.Hash, block.Hash) &&
+		len(candidate.Nonce) > 0 && strings.EqualFold(candidate.Nonce, block.Nonce) {
 		return true
 	}
 
@@ -208,28 +209,28 @@ func (u *BlockUnlocker) handleBlock(block *rpc.BcBlockReply, candidate *storage.
 	reward := getConstReward(block, candidate.Height)
 
 	// Add TX fees
-  /*
-	extraTxReward, err := u.getExtraRewardForTx(block)
-	if err != nil {
-		return fmt.Errorf("Error while fetching TX receipt: %v", err)
-	}
-	if u.config.KeepTxFees {
-		candidate.ExtraReward = extraTxReward
-	} else {
-		reward.Add(reward, extraTxReward)
-	}
-  */
+	/*
+		extraTxReward, err := u.getExtraRewardForTx(block)
+		if err != nil {
+			return fmt.Errorf("Error while fetching TX receipt: %v", err)
+		}
+		if u.config.KeepTxFees {
+			candidate.ExtraReward = extraTxReward
+		} else {
+			reward.Add(reward, extraTxReward)
+		}
+	*/
 
-  /* Bc handles uncles very differently
+	/* Bc handles uncles very differently
 	// Add reward for including uncles
 	uncleReward := getRewardForUncle(candidate.Height)
 	rewardForUncles := big.NewInt(0).Mul(uncleReward, big.NewInt(int64(len(block.Uncles))))
 	reward.Add(reward, rewardForUncles)
-  */
+	*/
 
 	candidate.Orphan = false
 	candidate.Hash = block.Hash
-  candidate.Nonce = block.Nonce
+	candidate.Nonce = block.Nonce
 	candidate.Reward = reward
 	return nil
 }
@@ -253,9 +254,9 @@ func (u *BlockUnlocker) unlockPendingBlocks() {
 
 	current, err := u.rpc.GetLatestBlock()
 	if err != nil {
-		u.halt = true
-		u.lastFail = err
-		log.Printf("Unable to get current blockchain height from node: %v", err)
+		//u.halt = true DUHHHHH... Ditto
+		//u.lastFail = err
+		log.Printf("Unable to get current blockchain height from node: Retrying")
 		return
 	}
 	currentHeight, err := strconv.ParseInt(string(current.Number), 10, 64)
@@ -265,7 +266,6 @@ func (u *BlockUnlocker) unlockPendingBlocks() {
 		log.Printf("Can't parse pending block number: %v", err)
 		return
 	}
-
 	candidates, err := u.backend.GetCandidates(currentHeight - u.config.ImmatureDepth)
 	if err != nil {
 		u.halt = true
@@ -351,9 +351,9 @@ func (u *BlockUnlocker) unlockAndCreditMiners() {
 
 	current, err := u.rpc.GetLatestBlock()
 	if err != nil {
-		u.halt = true
-		u.lastFail = err
-		log.Printf("Unable to get current blockchain height from node: %v", err)
+		//u.halt = true #BCnode after 1.4.9 is weird. They do EOF when they sync to a fork, instead of just delaying
+		//u.lastFail = err
+		log.Printf("Unable to get current blockchain height from node: Waiting")
 		return
 	}
 	currentHeight, err := strconv.ParseInt(string(current.Number), 10, 64)
@@ -466,7 +466,7 @@ func (u *BlockUnlocker) calculateRewards(block *storage.BlockData) (*big.Rat, *b
 		rewards[login] += weiToShannonInt64(donation)
 	}
 
-  poolFeeAddress := os.Getenv(u.config.PoolFeeAddress)
+	poolFeeAddress := os.Getenv(u.config.PoolFeeAddress)
 	if len(poolFeeAddress) != 0 {
 		address := strings.ToLower(poolFeeAddress)
 		rewards[address] += weiToShannonInt64(poolProfit)
@@ -526,10 +526,10 @@ func (u *BlockUnlocker) getExtraRewardForTx(block *rpc.BcBlockReply) (*big.Int, 
 			return nil, err
 		}
 		if receipt != nil {
-      /* FIX ME - BC Transactions....
+			/* FIX ME - BC Transactions....
 			gasUsed := util.String2Big(receipt.GasUsed)
 			gasPrice := util.String2Big(tx.GasPrice)
-      */
+			*/
 			fee := new(big.Int) //gasUsed, gasPrice)
 			amount.Add(amount, fee)
 		}

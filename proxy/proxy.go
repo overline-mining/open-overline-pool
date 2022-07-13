@@ -63,8 +63,8 @@ func NewProxy(cfg *Config, backend *storage.RedisClient) *ProxyServer {
 	proxy := &ProxyServer{config: cfg, backend: backend, policy: policy}
 	proxy.diff = strconv.FormatInt(cfg.Proxy.Difficulty, 10)
 
-	proxy.upstreams = make([]*rpc.RPCClient, len(cfg.Upstream))
-	proxy.mining_upstreams = make([]*rpc.RPCClient, len(cfg.Upstream))
+	proxy.upstreams[i] = rpc.NewRPCClient(v.Name, v.Url, "", SCookie, v.Timeout)
+	proxy.mining_upstreams[i] = rpc.NewRPCClient(v.Name, v.UrlMining, "", "", v.Timeout)
 	for i, v := range cfg.Upstream {
     SCookie := os.Getenv(v.SCookie)
 		proxy.upstreams[i] = rpc.NewRPCClient(v.Name, v.Url, SCookie, v.Timeout)
