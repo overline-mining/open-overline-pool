@@ -21,6 +21,7 @@
 		"immatureDepth": 16,
 		"keepTxFees": false,
 		"interval": "10s",
+		"gool": "http://goolip:8448",
 		"daemon": "http://overline:3000/rpc",
     "scookie": "POOL_NODE_SCOOKIE",
 		"timeout": "10s"
